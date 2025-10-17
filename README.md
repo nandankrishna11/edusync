@@ -81,8 +81,6 @@ frontend/src/
 
 ## 🚀 Quick Start
 
-> **⚡ For the fastest setup, see [QUICK_START.md](QUICK_START.md)**
-
 ### One-Click Setup (Recommended)
 ```bash
 python quick-setup.py
@@ -93,7 +91,20 @@ python quick-setup.py
 - Or use `start-backend.bat` and `start-frontend.bat` separately
 
 ### Manual Setup
-See [QUICK_START.md](QUICK_START.md) for detailed manual setup instructions.
+```bash
+# Backend
+cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+python init_auth.py
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Frontend (new terminal)
+cd frontend
+npm install
+npm start
+```
 
 ### Access the Application
 - **Frontend**: http://localhost:3000

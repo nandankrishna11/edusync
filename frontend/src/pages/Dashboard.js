@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../features/auth/hooks/useAuth';
-import { getAllClasses, createClass, getNextClass } from '../services/api';
+import { getAllClasses, createClass, getNextClass } from '../api/services';
 
 const Dashboard = () => {
   const { user, hasRole } = useAuth();

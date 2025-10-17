@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createBulkAttendance } from '../services/api';
+import { createBulkAttendance } from '../api/services';
 
 
 const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {

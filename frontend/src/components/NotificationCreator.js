@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createNotification } from '../services/api';
+import { createNotification } from '../api/services';
 
 
 const NotificationCreator = ({ onNotificationCreated, onClose }) => {

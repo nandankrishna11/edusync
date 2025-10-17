@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from database import get_db
 from models.notification_model import NotificationModel
-from schemas.notification_schema import NotificationResponse, NotificationCreate, NotificationUpdate
+from .schemas import NotificationResponse, NotificationCreate, NotificationUpdate
 from modules.auth.dependencies import get_current_active_user, require_professor_or_admin
 from modules.auth.models import User
 

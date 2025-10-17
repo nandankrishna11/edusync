@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Timetable from '../components/Timetable';
-import { getNextClass } from '../services/api';
+import { getNextClass } from '../api/services';
 
 const TimetablePage = () => {
   const [userRole, setUserRole] = useState('student'); // 'student' or 'professor'

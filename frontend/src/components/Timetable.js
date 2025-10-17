@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getTimetable, cancelClass, undoCancelClass } from '../services/api';
+import { getTimetable, cancelClass, undoCancelClass } from '../api/services';
 
 const Timetable = ({ userRole = 'student', selectedClassId = 'CS301' }) => {
   const [timetable, setTimetable] = useState([]);

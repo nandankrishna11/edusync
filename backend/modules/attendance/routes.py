@@ -9,7 +9,7 @@ from datetime import datetime, date
 
 from database import get_db
 from models.attendance_model import AttendanceModel
-from schemas.attendance_schema import AttendanceResponse, AttendanceCreate, AttendanceUpdate
+from .schemas import AttendanceResponse, AttendanceCreate, AttendanceUpdate
 from modules.auth.dependencies import get_current_active_user, require_professor_or_admin
 from modules.auth.models import User
 

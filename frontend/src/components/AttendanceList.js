@@ -6,7 +6,7 @@ import {
   deleteAttendanceRecord,
   getClassAttendanceStats,
   getStudentAttendanceStats 
-} from '../services/api';
+} from '../api/services';
 
 
 const AttendanceList = ({ classId = null, studentId = null }) => {

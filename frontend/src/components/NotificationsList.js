@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import NotificationCard from './NotificationCard';
-import { getNotifications, markNotificationRead, deleteNotification, getNotificationStats } from '../services/api';
+import { getNotifications, markNotificationRead, deleteNotification, getNotificationStats } from '../api/services';
 
 
 const NotificationsList = ({ classId = null, studentId = null }) => {

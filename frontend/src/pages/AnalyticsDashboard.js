@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getAnalyticsDashboardData, generateAISummary } from '../services/api';
+import { getAnalyticsDashboardData, generateAISummary } from '../api/services';
 
 const AnalyticsDashboard = () => {
   const [attendanceData, setAttendanceData] = useState([]);

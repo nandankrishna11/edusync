@@ -34,28 +34,9 @@ def require_roles(allowed_roles: List[str]):
     return role_checker
 
 
-def require_admin(
-    current_user: models.User = Depends(get_current_active_user)
-):
-    """Require admin role"""
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-    return current_user
-
-
-def require_professor_or_admin(
-    current_user: models.User = Depends(get_current_active_user)
-):
-    """Require professor or admin role"""
-    if current_user.role not in ["professor", "admin"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Professor or admin access required"
-        )
-    return current_user
+# Specific role dependencies
+require_admin = require_roles(["admin"])
+require_professor_or_admin = require_roles(["professor", "admin"])
 
 
 def require_permission(permission: str):

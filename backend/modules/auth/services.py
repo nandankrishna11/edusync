@@ -3,7 +3,6 @@ Authentication services
 """
 from datetime import datetime, timedelta
 from typing import Optional, List
-from functools import wraps
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
@@ -13,7 +12,6 @@ from core.config import settings
 from database import get_db
 from . import models, schemas
 
-# Use pbkdf2_sha256 instead of bcrypt to avoid 72-byte limitation issues
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -193,35 +191,3 @@ def has_permission(user: models.User, permission: str) -> bool:
     return "*" in user_permissions or permission in user_permissions
 
 
-def require_role(allowed_roles: List[str]):
-    """Decorator to require specific roles for endpoint access"""
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Extract current_user from kwargs (injected by FastAPI dependency)
-            current_user = kwargs.get('current_user')
-            if not current_user or current_user.role not in allowed_roles:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions"
-                )
-            return await func(*args, **kwargs)
-        return wrapper
-    return decorator
-
-
-def require_permission(permission: str):
-    """Decorator to require specific permission for endpoint access"""
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Extract current_user from kwargs
-            current_user = kwargs.get('current_user')
-            if not current_user or not has_permission(current_user, permission):
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Insufficient permissions"
-                )
-            return await func(*args, **kwargs)
-        return wrapper
-    return decorator
