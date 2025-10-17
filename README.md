@@ -5,12 +5,13 @@ A modern, full-stack classroom management system with RAG (Retrieval-Augmented G
 ## 🚀 Features
 
 ### Core Functionality
-- **User Authentication** - Secure login/registration with JWT tokens
-- **Dynamic Timetable** - Real-time class scheduling with cancellation alerts
-- **Attendance Management** - Comprehensive student attendance tracking
-- **Notifications System** - Multi-type notifications (cancellations, resources, notices)
-- **Analytics Dashboard** - Interactive charts and performance insights
-- **AI Insights** - RAG-powered intelligent analysis and recommendations
+- **Role-Based Authentication** - Secure login/registration with JWT tokens and RBAC
+- **User Management** - Complete user lifecycle management with role assignments
+- **Dynamic Timetable** - Real-time class scheduling with role-based permissions
+- **Attendance Management** - Comprehensive tracking with role-specific access
+- **Notifications System** - Multi-type notifications with role-based filtering
+- **Analytics Dashboard** - Interactive charts with permission-based data access
+- **AI Insights** - RAG-powered intelligent analysis for authorized users
 
 ### Technical Highlights
 - **Modular Architecture** - Clean separation of concerns with feature-based modules
@@ -80,59 +81,44 @@ frontend/src/
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.8+
-- Node.js 14+
-- npm or yarn
+> **⚡ For the fastest setup, see [QUICK_START.md](QUICK_START.md)**
 
-### Backend Setup
+### One-Click Setup (Recommended)
 ```bash
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Initialize database
-python -c "from database import engine; from modules.auth.models import *; from modules.timetable.models import *; Base.metadata.create_all(bind=engine)"
-
-# Start development server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+python quick-setup.py
 ```
 
-### Frontend Setup
-```bash
-# Navigate to frontend directory
-cd frontend
+### Easy Startup (Windows)
+- Double-click `start-all.bat` (starts both servers)
+- Or use `start-backend.bat` and `start-frontend.bat` separately
 
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-```
+### Manual Setup
+See [QUICK_START.md](QUICK_START.md) for detailed manual setup instructions.
 
 ### Access the Application
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
 
+### Default Login Credentials
+- **Admin**: `admin` / `admin123`
+- **Professor**: `prof_smith` / `prof123`
+- **Student**: `student_john` / `student123`
+
 ## 📊 Key Features
 
-### 1. Authentication System
-- Secure user registration and login
-- JWT token-based authentication
-- Role-based access control (Student, Professor, Admin)
-- Protected routes and API endpoints
+### 1. Role-Based Authentication System
+- **Three User Roles**: Student, Professor, Admin with distinct permissions
+- **JWT Token Authentication**: Secure token-based authentication with auto-refresh
+- **User Management**: Complete CRUD operations for user accounts (admin only)
+- **Password Security**: Bcrypt hashing with password change functionality
+- **Protected Routes**: Frontend and backend route protection based on roles
+- **Permission System**: Fine-grained permissions for different operations
+
+#### User Role Permissions:
+- **Students**: View classes, timetables, personal attendance, notifications, update profile
+- **Professors**: All student features + create/manage classes, mark attendance, send notifications, view analytics
+- **Admins**: All professor features + user management, system administration
 
 ### 2. Dynamic Timetable
 - Real-time class scheduling

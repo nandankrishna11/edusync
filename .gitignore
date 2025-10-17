@@ -99,3 +99,12 @@ embeddings/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Backup folders
+safe_refactor_backup_*/
+backup_*/
+*_backup/
+
+# Test files (optional)
+test-*.py
+test_*.json

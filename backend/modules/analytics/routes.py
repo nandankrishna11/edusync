@@ -1,3 +1,6 @@
+"""
+Analytics routes with role-based access control
+"""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -6,15 +9,18 @@ from datetime import datetime, date, timedelta
 from database import get_db
 from models.attendance_model import AttendanceModel
 from models.notification_model import NotificationModel
+from modules.auth.dependencies import get_current_active_user, require_professor_or_admin
+from modules.auth.models import User
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 @router.post("/ai_summary")
 def generate_ai_summary(
     request_data: dict,
+    current_user: User = Depends(require_professor_or_admin),
     db: Session = Depends(get_db)
 ):
-    """Generate AI-powered summary using attendance and class data"""
+    """Generate AI-powered summary using attendance and class data - professors and admins only"""
     try:
         class_id = request_data.get("class_id")
         
@@ -112,9 +118,10 @@ def generate_ai_summary(
 @router.get("/dashboard_data")
 def get_dashboard_data(
     class_id: Optional[str] = None,
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Get comprehensive dashboard data for analytics"""
+    """Get comprehensive dashboard data for analytics with role-based filtering"""
     try:
         attendance_query = db.query(AttendanceModel)
         notification_query = db.query(NotificationModel)

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../features/auth/hooks/useAuth';
 import { getAllClasses, createClass, getNextClass } from '../services/api';
 
 const Dashboard = () => {
+  const { user, hasRole } = useAuth();
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreatingClass, setIsCreatingClass] = useState(false);
@@ -146,37 +148,44 @@ const Dashboard = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-6 md:mb-0">
               <h1 className="text-3xl font-bold text-app-text-primary mb-2">
-                Welcome back, John! 👋
+                Welcome back, {user?.full_name || user?.username}! 👋
               </h1>
               <p className="text-app-text-secondary text-lg">
-                Manage your classes and track your learning progress
+                {user?.role === 'student' 
+                  ? 'Track your classes and learning progress'
+                  : user?.role === 'professor'
+                  ? 'Manage your classes and student progress'
+                  : 'Oversee the entire classroom management system'
+                }
               </p>
             </div>
             
-            {/* Create New Class Button */}
-            <button
-              onClick={handleCreateClass}
-              disabled={isCreatingClass}
-              className="bg-light-gradient text-white px-6 py-3 rounded-app font-semibold
-                       shadow-app-card hover:shadow-card-hover
-                       transform hover:scale-[1.02] active:scale-[0.98]
-                       transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
-                       flex items-center space-x-2"
-            >
-              {isCreatingClass ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>Create New Class</span>
-                </>
-              )}
-            </button>
+            {/* Create New Class Button - Only for professors and admins */}
+            {hasRole(['professor', 'admin']) && (
+              <button
+                onClick={handleCreateClass}
+                disabled={isCreatingClass}
+                className="bg-light-gradient text-white px-6 py-3 rounded-app font-semibold
+                         shadow-app-card hover:shadow-card-hover
+                         transform hover:scale-[1.02] active:scale-[0.98]
+                         transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
+                         flex items-center space-x-2"
+              >
+                {isCreatingClass ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Create New Class</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 

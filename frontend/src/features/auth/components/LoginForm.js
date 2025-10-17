@@ -9,16 +9,20 @@ const LoginForm = () => {
     username: '',
     password: ''
   });
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       await login(credentials);
     } catch (error) {
       console.error('Login failed:', error);
+      setError('Invalid credentials or insufficient permissions');
     } finally {
       setLoading(false);
     }
@@ -48,6 +52,18 @@ const LoginForm = () => {
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex">
+                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="ml-2 text-sm text-red-600">{error}</p>
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Username

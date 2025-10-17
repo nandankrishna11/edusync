@@ -2,14 +2,18 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
-pydantic==2.5.0
-pydantic-settings==2.0.3
-sqlalchemy==2.0.23
+pydantic[email]==2.10.4
+pydantic-settings==2.7.0
+sqlalchemy==2.0.36
 python-dateutil==2.8.2
 
 # Authentication
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+passlib==1.7.4
+
+# Additional utilities
+email-validator==2.3.0
+python-dotenv==1.1.1
 
 # AI/RAG dependencies (optional - only if using AI features)
 # sentence-transformers==2.2.2

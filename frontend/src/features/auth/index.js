@@ -1,8 +1,6 @@
 /**
- * Authentication feature module
+ * Auth Feature Index
  */
-export { default as LoginForm } from './components/LoginForm';
-export { default as RegisterForm } from './components/RegisterForm';
-export { default as AuthProvider } from './context/AuthProvider';
+export * from './components';
 export * from './hooks/useAuth';
 export * from './services/authService';

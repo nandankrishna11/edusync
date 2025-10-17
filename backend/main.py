@@ -3,9 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from database import engine
 from models.class_model import ClassModel
-from models.timetable_model import TimetableModel
 from models.notification_model import NotificationModel
 from models.attendance_model import AttendanceModel
+from modules.auth.models import User
+from modules.timetable.models import Timetable
 from modules.auth.routes import router as auth_router
 from modules.timetable.routes import router as timetable_router
 from modules.attendance.routes import router as attendance_router
@@ -13,8 +14,9 @@ from modules.notifications.routes import router as notifications_router
 from modules.analytics.routes import router as analytics_router
 
 # Create database tables
+User.metadata.create_all(bind=engine)
 ClassModel.metadata.create_all(bind=engine)
-TimetableModel.metadata.create_all(bind=engine)
+Timetable.metadata.create_all(bind=engine)
 NotificationModel.metadata.create_all(bind=engine)
 AttendanceModel.metadata.create_all(bind=engine)
 

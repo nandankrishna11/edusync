@@ -39,3 +39,19 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    role: Optional[str] = None
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: User
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class PasswordReset(BaseModel):
+    email: EmailStr
