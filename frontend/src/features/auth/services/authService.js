@@ -5,20 +5,36 @@ import api from '../../../api/client';
 
 export const authService = {
   async login(credentials) {
-    const formData = new FormData();
-    formData.append('username', credentials.username);
-    formData.append('password', credentials.password);
-    
-    const response = await api.post('/auth/token', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    // Try the new user_id-based login endpoint first
+    try {
+      const response = await api.post('/auth/login', {
+        user_id: credentials.user_id,
+        password: credentials.password
+      });
+      return response.data;
+    } catch (error) {
+      // Fallback to token endpoint for backward compatibility
+      const formData = new FormData();
+      formData.append('username', credentials.user_id);  // Send user_id as username for OAuth2 compatibility
+      formData.append('password', credentials.password);
+      
+      const response = await api.post('/auth/token', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    }
   },
 
   async register(userData) {
-    const response = await api.post('/auth/register', userData);
+    const response = await api.post('/auth/register', {
+      user_id: userData.user_id,
+      password: userData.password,
+      full_name: userData.full_name,
+      email: userData.email,
+      role: userData.role || 'student'
+    });
     return response.data;
   },
 

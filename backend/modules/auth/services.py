@@ -44,8 +44,12 @@ def get_user(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
 
-def authenticate_user(db: Session, username: str, password: str):
-    user = get_user(db, username)
+def get_user_by_user_id(db: Session, user_id: str):
+    return db.query(models.User).filter(models.User.user_id == user_id).first()
+
+
+def authenticate_user(db: Session, user_id: str, password: str):
+    user = get_user_by_user_id(db, user_id)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -74,19 +78,27 @@ def verify_token(token: str):
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    # Check if user already exists
-    existing_user = db.query(models.User).filter(
-        (models.User.username == user.username) | (models.User.email == user.email)
-    ).first()
+    # Check if user_id already exists
+    existing_user = get_user_by_user_id(db, user.user_id)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username or email already registered"
+            detail="User ID already registered"
         )
+    
+    # Check email uniqueness if provided
+    if user.email:
+        existing_email = db.query(models.User).filter(models.User.email == user.email).first()
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
     
     hashed_password = get_password_hash(user.password)
     db_user = models.User(
-        username=user.username,
+        user_id=user.user_id,
+        username=user.user_id,  # Use user_id as username for backward compatibility
         email=user.email,
         hashed_password=hashed_password,
         full_name=user.full_name,
@@ -171,15 +183,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        username: str = payload.get("sub")
+        user_id: str = payload.get("sub")
         role: str = payload.get("role")
-        if username is None:
+        if user_id is None:
             raise credentials_exception
-        token_data = schemas.TokenData(username=username, role=role)
+        token_data = schemas.TokenData(user_id=user_id, role=role)
     except JWTError:
         raise credentials_exception
     
-    user = get_user(db, username=token_data.username)
+    user = get_user_by_user_id(db, user_id=token_data.user_id)
     if user is None:
         raise credentials_exception
     return user

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AttendanceCard from './AttendanceCard';
+import { useAuth } from '../features/auth/hooks/useAuth';
 import { 
   getAttendanceRecords, 
   updateAttendanceRecord, 
@@ -9,7 +10,8 @@ import {
 } from '../api/services';
 
 
-const AttendanceList = ({ classId = null, studentId = null }) => {
+const AttendanceList = ({ classId = null, usn = null }) => {
+  const { user, hasRole } = useAuth();
   const [records, setRecords] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ const AttendanceList = ({ classId = null, studentId = null }) => {
   useEffect(() => {
     fetchRecords();
     fetchStats();
-  }, [classId, studentId, filters]);
+  }, [classId, usn, filters]);
 
   const fetchRecords = async () => {
     try {
@@ -32,7 +34,7 @@ const AttendanceList = ({ classId = null, studentId = null }) => {
       const filterParams = {
         ...filters,
         class_id: classId,
-        student_id: studentId
+        usn: usn
       };
       
       // Remove empty filters
@@ -58,8 +60,8 @@ const AttendanceList = ({ classId = null, studentId = null }) => {
       let statsData = null;
       if (classId) {
         statsData = await getClassAttendanceStats(classId);
-      } else if (studentId) {
-        statsData = await getStudentAttendanceStats(studentId);
+      } else if (usn) {
+        statsData = await getStudentAttendanceStats(usn);
       }
       setStats(statsData);
     } catch (err) {
@@ -68,6 +70,12 @@ const AttendanceList = ({ classId = null, studentId = null }) => {
   };
 
   const handleUpdate = async (recordId, updateData) => {
+    // Only professors and admins can update attendance
+    if (!hasRole(['professor', 'admin'])) {
+      alert('You do not have permission to update attendance records');
+      return;
+    }
+
     try {
       await updateAttendanceRecord(recordId, updateData);
       setRecords(prev => 
@@ -85,6 +93,12 @@ const AttendanceList = ({ classId = null, studentId = null }) => {
   };
 
   const handleDelete = async (recordId) => {
+    // Only professors and admins can delete attendance
+    if (!hasRole(['professor', 'admin'])) {
+      alert('You do not have permission to delete attendance records');
+      return;
+    }
+
     if (window.confirm('Are you sure you want to delete this attendance record?')) {
       try {
         await deleteAttendanceRecord(recordId);
@@ -141,7 +155,10 @@ const AttendanceList = ({ classId = null, studentId = null }) => {
         <div className="header-title">
           <h2>📊 Attendance Records</h2>
           {classId && <span className="class-filter">Class: {classId}</span>}
-          {studentId && <span className="student-filter">Student: {studentId}</span>}
+          {usn && <span className="student-filter">Student: {usn}</span>}
+          <span className="role-indicator">
+            {user?.role === 'student' ? '(View Only)' : '(Edit Mode)'}
+          </span>
         </div>
         
         <div className="attendance-summary">
@@ -259,6 +276,7 @@ const AttendanceList = ({ classId = null, studentId = null }) => {
                 record={record}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}
+                readOnly={user?.role === 'student'}
               />
             ))}
           </div>

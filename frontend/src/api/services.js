@@ -106,7 +106,7 @@ export const getAttendanceRecords = async (filters = {}) => {
   const params = new URLSearchParams();
   
   if (filters.class_id) params.append('class_id', filters.class_id);
-  if (filters.student_id) params.append('student_id', filters.student_id);
+  if (filters.usn) params.append('usn', filters.usn);
   if (filters.status) params.append('status', filters.status);
   if (filters.date_from) params.append('date_from', filters.date_from);
   if (filters.date_to) params.append('date_to', filters.date_to);
@@ -122,8 +122,8 @@ export const createAttendanceRecord = async (attendanceData) => {
   return response.data;
 };
 
-export const createBulkAttendance = async (attendanceRecords) => {
-  const response = await api.post('/attendance/bulk', attendanceRecords);
+export const createBulkAttendance = async (bulkData) => {
+  const response = await api.post('/attendance/bulk', bulkData);
   return response.data;
 };
 
@@ -137,8 +137,8 @@ export const deleteAttendanceRecord = async (recordId) => {
   return response.data;
 };
 
-export const getStudentAttendanceStats = async (studentId, classId = null) => {
-  const url = classId ? `/attendance/stats/student/${studentId}?class_id=${classId}` : `/attendance/stats/student/${studentId}`;
+export const getStudentAttendanceStats = async (usn, classId = null) => {
+  const url = classId ? `/attendance/stats/student/${usn}?class_id=${classId}` : `/attendance/stats/student/${usn}`;
   const response = await api.get(url);
   return response.data;
 };

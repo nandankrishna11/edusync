@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    user_id: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -141,40 +141,48 @@ const RegisterForm = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder="Enter username"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder="Enter full name"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                User ID
+              </label>
+              <input
+                type="text"
+                name="user_id"
+                value={formData.user_id}
+                onChange={(e) => setFormData({...formData, user_id: e.target.value.toUpperCase()})}
+                className="form-input"
+                placeholder={
+                  formData.role === 'student' ? 'Enter USN (e.g., 1MS21CS001)' :
+                  formData.role === 'professor' ? 'Enter Employee ID (e.g., EMP001)' :
+                  'Enter Admin ID (e.g., ADMIN001)'
+                }
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.role === 'student' && 'Students use University Seat Number (USN)'}
+                {formData.role === 'professor' && 'Professors use Employee ID'}
+                {formData.role === 'admin' && 'Admins use Admin ID'}
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="Enter full name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Email Address (Optional)
               </label>
               <input
                 type="email"
@@ -182,8 +190,7 @@ const RegisterForm = () => {
                 value={formData.email}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="Enter email address"
-                required
+                placeholder="Enter email address (optional)"
               />
             </div>
 

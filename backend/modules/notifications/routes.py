@@ -16,7 +16,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 @router.get("/", response_model=List[NotificationResponse])
 def get_notifications(
     class_id: Optional[str] = Query(None, description="Filter by class ID"),
-    student_id: Optional[str] = Query(None, description="Filter by student ID"),
+    target_usn: Optional[str] = Query(None, description="Filter by target student USN"),
     notification_type: Optional[str] = Query(None, description="Filter by type: cancellation, resource, notice"),
     is_read: Optional[bool] = Query(None, description="Filter by read status"),
     limit: int = Query(50, description="Maximum number of notifications to return"),
@@ -30,8 +30,8 @@ def get_notifications(
     if current_user.role == "student":
         # Students can only see notifications for them or general notifications
         query = query.filter(
-            (NotificationModel.student_id == current_user.username) | 
-            (NotificationModel.student_id.is_(None))
+            (NotificationModel.target_usn == current_user.user_id) | 
+            (NotificationModel.target_usn.is_(None))
         )
     elif current_user.role == "professor":
         # Professors can see all notifications for their classes
@@ -40,10 +40,10 @@ def get_notifications(
     
     if class_id:
         query = query.filter(NotificationModel.class_id == class_id)
-    if student_id and current_user.role in ["professor", "admin"]:
+    if target_usn and current_user.role in ["professor", "admin"]:
         query = query.filter(
-            (NotificationModel.student_id == student_id) | 
-            (NotificationModel.student_id.is_(None))
+            (NotificationModel.target_usn == target_usn) | 
+            (NotificationModel.target_usn.is_(None))
         )
     if notification_type:
         query = query.filter(NotificationModel.type == notification_type)
@@ -79,7 +79,7 @@ def mark_notification_read(
     
     # Students can only mark their own notifications as read
     if current_user.role == "student":
-        if notification.student_id and notification.student_id != current_user.username:
+        if notification.target_usn and notification.target_usn != current_user.user_id:
             raise HTTPException(status_code=403, detail="Not authorized to modify this notification")
     
     notification.is_read = True

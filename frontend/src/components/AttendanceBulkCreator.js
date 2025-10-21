@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBulkAttendance } from '../api/services';
+import { useAuth } from '../features/auth/hooks/useAuth';
 
 
 const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     class_id: '',
     date: new Date().toISOString().split('T')[0],
     period_start: '',
     period_end: '',
-    subject: '',
-    marked_by: ''
+    subject: ''
   });
   const [studentAttendance, setStudentAttendance] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
 
-  // Mock data - in real app, fetch from API
+  // Sample data - in real app, fetch from API based on class
   const classes = ['CS301', 'MATH201', 'ENG101', 'PHYS201'];
-  const students = ['student_001', 'student_002', 'student_003', 'student_004', 'student_005'];
+  const students = ['1MS21CS001', '1MS21CS002', '1MS21CS003', '1MS21CS004', '1MS21CS005'];
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -28,17 +29,17 @@ const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
     setError(null);
   };
 
-  const handleStudentStatusChange = (studentId, status) => {
+  const handleStudentStatusChange = (usn, status) => {
     setStudentAttendance(prev => ({
       ...prev,
-      [studentId]: status
+      [usn]: status
     }));
   };
 
   const setAllStudentsStatus = (status) => {
     const newAttendance = {};
-    students.forEach(studentId => {
-      newAttendance[studentId] = status;
+    students.forEach(usn => {
+      newAttendance[usn] = status;
     });
     setStudentAttendance(newAttendance);
   };
@@ -52,13 +53,8 @@ const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
       setError('Date is required');
       return false;
     }
-    if (!formData.marked_by.trim()) {
-      setError('Marked by is required');
-      return false;
-    }
-    
     const hasAttendance = Object.keys(studentAttendance).some(
-      studentId => studentAttendance[studentId]
+      usn => studentAttendance[usn]
     );
     if (!hasAttendance) {
       setError('Please mark attendance for at least one student');
@@ -78,21 +74,24 @@ const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
     setResults(null);
 
     try {
-      // Create attendance records for all students with status
+      // Create bulk attendance data in the new format
       const attendanceRecords = Object.entries(studentAttendance)
         .filter(([_, status]) => status) // Only include students with a status
-        .map(([studentId, status]) => ({
-          class_id: formData.class_id,
-          student_id: studentId,
-          date: formData.date,
-          status: status,
-          marked_by: formData.marked_by,
-          period_start: formData.period_start || null,
-          period_end: formData.period_end || null,
-          subject: formData.subject || null
+        .map(([usn, status]) => ({
+          usn: usn,
+          status: status
         }));
 
-      const result = await createBulkAttendance(attendanceRecords);
+      const bulkData = {
+        class_id: formData.class_id,
+        date: formData.date,
+        period_start: formData.period_start || null,
+        period_end: formData.period_end || null,
+        subject: formData.subject || null,
+        attendance_records: attendanceRecords
+      };
+
+      const result = await createBulkAttendance(bulkData);
       setResults(result);
       
       if (onAttendanceCreated) {
@@ -106,8 +105,7 @@ const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
           date: new Date().toISOString().split('T')[0],
           period_start: '',
           period_end: '',
-          subject: '',
-          marked_by: ''
+          subject: ''
         });
         setStudentAttendance({});
       }
@@ -211,15 +209,13 @@ const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="marked_by">Marked By *</label>
+            <label htmlFor="marked_by">Marked By</label>
             <input
               type="text"
               id="marked_by"
-              value={formData.marked_by}
-              onChange={(e) => handleInputChange('marked_by', e.target.value)}
+              value={user?.user_id || user?.full_name || 'Current User'}
               className="form-input"
-              placeholder="Professor name"
-              required
+              disabled
             />
           </div>
         </div>
@@ -260,30 +256,30 @@ const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
           </div>
 
           <div className="students-grid">
-            {students.map(studentId => (
-              <div key={studentId} className="student-row">
+            {students.map(usn => (
+              <div key={usn} className="student-row">
                 <div className="student-info">
-                  <span className="student-id">{studentId}</span>
+                  <span className="student-usn">{usn}</span>
                 </div>
                 <div className="status-buttons">
                   <button
                     type="button"
-                    className={`status-btn present ${studentAttendance[studentId] === 'present' ? 'active' : ''}`}
-                    onClick={() => handleStudentStatusChange(studentId, 'present')}
+                    className={`status-btn present ${studentAttendance[usn] === 'present' ? 'active' : ''}`}
+                    onClick={() => handleStudentStatusChange(usn, 'present')}
                   >
                     ✅
                   </button>
                   <button
                     type="button"
-                    className={`status-btn absent ${studentAttendance[studentId] === 'absent' ? 'active' : ''}`}
-                    onClick={() => handleStudentStatusChange(studentId, 'absent')}
+                    className={`status-btn absent ${studentAttendance[usn] === 'absent' ? 'active' : ''}`}
+                    onClick={() => handleStudentStatusChange(usn, 'absent')}
                   >
                     ❌
                   </button>
                   <button
                     type="button"
-                    className={`status-btn cancelled ${studentAttendance[studentId] === 'cancelled' ? 'active' : ''}`}
-                    onClick={() => handleStudentStatusChange(studentId, 'cancelled')}
+                    className={`status-btn cancelled ${studentAttendance[usn] === 'cancelled' ? 'active' : ''}`}
+                    onClick={() => handleStudentStatusChange(usn, 'cancelled')}
                   >
                     🚫
                   </button>
@@ -355,7 +351,7 @@ const AttendanceBulkCreator = ({ onAttendanceCreated, onClose }) => {
               </>
             ) : (
               <>
-                📊 Create Attendance Records ({Object.keys(studentAttendance).filter(id => studentAttendance[id]).length})
+                📊 Create Attendance Records ({Object.keys(studentAttendance).filter(usn => studentAttendance[usn]).length})
               </>
             )}
           </button>

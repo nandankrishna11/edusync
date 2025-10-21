@@ -84,3 +84,81 @@ def get_next_class(db: Session, class_id: str):
             "cancel_reason": next_class.cancel_reason
         }
     return None
+
+
+def get_timetable_by_id(db: Session, timetable_id: int):
+    """Get a specific timetable entry by ID with color coding"""
+    timetable_entry = db.query(models.Timetable).filter(models.Timetable.id == timetable_id).first()
+    
+    if timetable_entry:
+        return _add_color_coding(timetable_entry)
+    return None
+
+
+def update_timetable_entry(db: Session, timetable_id: int, timetable_update: schemas.TimetableUpdate):
+    """Update a timetable entry"""
+    timetable_entry = db.query(models.Timetable).filter(models.Timetable.id == timetable_id).first()
+    
+    if timetable_entry:
+        update_data = timetable_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(timetable_entry, field, value)
+        
+        db.commit()
+        db.refresh(timetable_entry)
+        return timetable_entry
+    return None
+
+
+def delete_timetable_entry(db: Session, timetable_id: int):
+    """Delete a timetable entry"""
+    timetable_entry = db.query(models.Timetable).filter(models.Timetable.id == timetable_id).first()
+    
+    if timetable_entry:
+        db.delete(timetable_entry)
+        db.commit()
+        return True
+    return False
+
+
+def get_professor_timetable(db: Session, professor_usn: str):
+    """Get all timetable entries for a specific professor with color coding"""
+    timetable_entries = db.query(models.Timetable).filter(
+        models.Timetable.professor_usn == professor_usn
+    ).all()
+    
+    return [_add_color_coding(entry) for entry in timetable_entries]
+
+
+def get_class_status_with_colors(db: Session, class_id: str):
+    """Get class status with color coding for students"""
+    timetable_entries = db.query(models.Timetable).filter(
+        models.Timetable.class_id == class_id
+    ).all()
+    
+    return [_add_color_coding(entry) for entry in timetable_entries]
+
+
+def _add_color_coding(timetable_entry):
+    """Add color coding and status to timetable entry"""
+    if timetable_entry.is_cancelled:
+        status = "cancelled"
+        color_code = "red"
+    else:
+        status = "active"
+        color_code = "green"
+    
+    return {
+        "id": timetable_entry.id,
+        "class_id": timetable_entry.class_id,
+        "day": timetable_entry.day,
+        "period_start": timetable_entry.period_start,
+        "period_end": timetable_entry.period_end,
+        "subject": timetable_entry.subject,
+        "professor_usn": timetable_entry.professor_usn,
+        "is_cancelled": timetable_entry.is_cancelled,
+        "cancel_reason": timetable_entry.cancel_reason,
+        "status": status,
+        "color_code": color_code,
+        "created_at": timetable_entry.created_at
+    }

@@ -1,7 +1,7 @@
 import React from 'react';
 
 
-const AttendanceCard = ({ record, onUpdate, onDelete, showActions = true }) => {
+const AttendanceCard = ({ record, onUpdate, onDelete, readOnly = false }) => {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'present':
@@ -59,7 +59,7 @@ const AttendanceCard = ({ record, onUpdate, onDelete, showActions = true }) => {
     <div className={`attendance-card status-${record.status}`}>
       <div className="attendance-header">
         <div className="student-info">
-          <div className="student-id">{record.student_id}</div>
+          <div className="student-usn">{record.usn}</div>
           <div className="class-info">
             <span className="class-id">{record.class_id}</span>
             {record.subject && <span className="subject">{record.subject}</span>}
@@ -109,7 +109,7 @@ const AttendanceCard = ({ record, onUpdate, onDelete, showActions = true }) => {
         </div>
       </div>
 
-      {showActions && (
+      {!readOnly && (
         <div className="attendance-actions">
           <div className="status-buttons">
             <button
@@ -128,6 +128,13 @@ const AttendanceCard = ({ record, onUpdate, onDelete, showActions = true }) => {
             >
               ❌ Absent
             </button>
+            <button
+              className={`status-btn cancelled ${record.status === 'cancelled' ? 'active' : ''}`}
+              onClick={() => handleStatusChange('cancelled')}
+              title="Mark as cancelled"
+            >
+              🚫 Cancelled
+            </button>
           </div>
           
           <button 
@@ -137,6 +144,12 @@ const AttendanceCard = ({ record, onUpdate, onDelete, showActions = true }) => {
           >
             🗑️ Delete
           </button>
+        </div>
+      )}
+      
+      {readOnly && (
+        <div className="readonly-indicator">
+          <span className="readonly-text">👁️ View Only</span>
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 /**
  * Role-Based Router Component
  */
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import ProtectedRoute from './ProtectedRoute';
@@ -78,8 +77,10 @@ const RoleBasedRouter = () => {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="timetable" element={<TimetablePage />} />
             <Route path="attendance" element={<AttendancePage />} />
+            <Route path="attendance/reports" element={<AttendancePage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
+            <Route path="users" element={<UserManagement />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Routes>
         </ProtectedRoute>
@@ -98,13 +99,6 @@ const RoleBasedRouter = () => {
       
       {/* Profile Routes */}
       <Route path="/profile" element={<UserProfile />} />
-      
-      {/* Admin User Management */}
-      <Route path="/admin/users" element={
-        <ProtectedRoute requiredRole="admin">
-          <UserManagement />
-        </ProtectedRoute>
-      } />
       
       {/* Catch all */}
       <Route path="*" element={<Navigate to={getDashboardRoute()} replace />} />

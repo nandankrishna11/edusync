@@ -6,40 +6,82 @@ import api from '../api/client';
 
 export const useApi = (url, options = {}) => {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(url, options);
-        setData(response.data);
-        setError(null);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [url]);
-
-  const refetch = async () => {
+  // Generic API call function
+  const apiCall = async (endpoint, requestOptions = {}) => {
     try {
       setLoading(true);
-      const response = await api.get(url, options);
-      setData(response.data);
       setError(null);
+      
+      const { method = 'GET', body, headers = {} } = requestOptions;
+      
+      let response;
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        }
+      };
+
+      switch (method.toUpperCase()) {
+        case 'POST':
+          response = await api.post(endpoint, body, config);
+          break;
+        case 'PUT':
+          response = await api.put(endpoint, body, config);
+          break;
+        case 'DELETE':
+          response = await api.delete(endpoint, config);
+          break;
+        case 'GET':
+        default:
+          response = await api.get(endpoint, config);
+          break;
+      }
+      
+      return response.data;
     } catch (err) {
-      setError(err);
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          err.message || 
+                          'An error occurred';
+      setError(errorMessage);
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  return { data, loading, error, refetch };
+  useEffect(() => {
+    if (url) {
+      const fetchData = async () => {
+        try {
+          const response = await apiCall(url, options);
+          setData(response);
+        } catch (err) {
+          // Error is already handled in apiCall
+        }
+      };
+
+      fetchData();
+    }
+  }, [url]);
+
+  const refetch = async () => {
+    if (url) {
+      try {
+        const response = await apiCall(url, options);
+        setData(response);
+        return response;
+      } catch (err) {
+        throw err;
+      }
+    }
+  };
+
+  return { data, loading, error, refetch, apiCall };
 };
 
 export const useMutation = () => {
@@ -53,7 +95,11 @@ export const useMutation = () => {
       const response = await api[method](url, data);
       return response.data;
     } catch (err) {
-      setError(err);
+      const errorMessage = err.response?.data?.detail || 
+                          err.response?.data?.message || 
+                          err.message || 
+                          'An error occurred';
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);

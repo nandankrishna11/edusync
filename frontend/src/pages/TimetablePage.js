@@ -1,182 +1,151 @@
-import React, { useState, useEffect } from 'react';
-import Timetable from '../components/Timetable';
-import { getNextClass } from '../api/services';
+/**
+ * Timetable Page - Main timetable view for students and professors
+ */
+import React, { useState } from 'react';
+import { useAuth } from '../features/auth/hooks/useAuth';
+import TimetableGrid from '../features/timetable/components/TimetableGrid';
+import TimetableManagement from '../features/timetable/components/TimetableManagement';
 
 const TimetablePage = () => {
-  const [userRole, setUserRole] = useState('student'); // 'student' or 'professor'
-  const [selectedClassId, setSelectedClassId] = useState('CS301');
-  const [nextClass, setNextClass] = useState(null);
-  const [showCancelledBanner, setShowCancelledBanner] = useState(false);
+  const { user, isProfessor, isAdmin, isStudent } = useAuth();
+  const [activeTab, setActiveTab] = useState('view');
+  const [selectedClass, setSelectedClass] = useState('1MS21CS');
 
-  const availableClasses = [
-    { id: 'CS301', name: 'Computer Science 301' },
-    { id: 'MATH201', name: 'Mathematics 201' },
-    { id: 'PHYS101', name: 'Physics 101' }
+  // Sample class options - in production, this would come from an API
+  const classOptions = [
+    '1MS21CS', '2MS21CS', '3MS21CS', '4MS21CS',
+    '1MS21IS', '2MS21IS', '3MS21IS', '4MS21IS',
+    '1MS21EC', '2MS21EC', '3MS21EC', '4MS21EC'
   ];
 
-  useEffect(() => {
-    checkNextClass();
-  }, [selectedClassId]);
-
-  const checkNextClass = async () => {
-    try {
-      const nextClassData = await getNextClass(selectedClassId);
-      setNextClass(nextClassData);
-      
-      // Show banner if next class is cancelled
-      if (nextClassData.has_next_class && nextClassData.next_class.is_cancelled) {
-        setShowCancelledBanner(true);
-      } else {
-        setShowCancelledBanner(false);
-      }
-    } catch (error) {
-      console.error('Error fetching next class:', error);
-    }
-  };
-
   return (
-    <div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Cancelled Class Banner */}
-        {showCancelledBanner && nextClass?.next_class && (
-          <div className="bg-app-danger bg-opacity-10 border border-app-danger rounded-app p-4 mb-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="w-6 h-6 text-app-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-app-danger">
-                  Next Class Cancelled
-                </h3>
-                <div className="mt-1 text-sm text-app-danger">
-                  <p>
-                    <strong>{nextClass.next_class.subject}</strong> on {nextClass.next_class.day} at {nextClass.next_class.period_start}-{nextClass.next_class.period_end} has been cancelled.
-                  </p>
-                  {nextClass.next_class.cancel_reason && (
-                    <p className="mt-1">
-                      <strong>Reason:</strong> {nextClass.next_class.cancel_reason}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="ml-3">
-                <button
-                  onClick={() => setShowCancelledBanner(false)}
-                  className="text-app-danger hover:text-app-danger opacity-75 hover:opacity-100"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="mb-6 md:mb-0">
-              <h1 className="text-3xl font-bold text-app-text-primary mb-2">
-                Class Timetable
-              </h1>
-              <p className="text-app-text-secondary text-lg">
-                View and manage your class schedule
-              </p>
-            </div>
-            
-            {/* Controls */}
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              {/* Role Selector */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-app-text-primary">View as:</label>
-                <select
-                  value={userRole}
-                  onChange={(e) => setUserRole(e.target.value)}
-                  className="px-3 py-2 border border-app-border rounded-app text-app-text-primary focus:outline-none focus:ring-2 focus:ring-app-primary focus:border-transparent"
-                >
-                  <option value="student">Student</option>
-                  <option value="professor">Professor</option>
-                </select>
-              </div>
+          <h1 className="text-3xl font-bold text-gray-900">Timetable</h1>
+          <p className="mt-2 text-gray-600">
+            {isStudent() && 'View your class schedule and check for any cancelled classes'}
+            {isProfessor() && 'Manage your classes and view schedules'}
+            {isAdmin() && 'Manage all timetables and class schedules'}
+          </p>
+        </div>
 
-              {/* Class Selector */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-app-text-primary">Class:</label>
+        {/* Navigation Tabs */}
+        <div className="mb-6">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('view')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'view'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              View Timetable
+            </button>
+            
+            {(isProfessor() || isAdmin()) && (
+              <button
+                onClick={() => setActiveTab('manage')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'manage'
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Manage Classes
+              </button>
+            )}
+          </nav>
+        </div>
+
+        {/* Content */}
+        {activeTab === 'view' && (
+          <div>
+            {/* Class Selector for Students and Admins */}
+            {(isStudent() || isAdmin()) && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Class:
+                </label>
                 <select
-                  value={selectedClassId}
-                  onChange={(e) => setSelectedClassId(e.target.value)}
-                  className="px-3 py-2 border border-app-border rounded-app text-app-text-primary focus:outline-none focus:ring-2 focus:ring-app-primary focus:border-transparent"
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className="form-input max-w-xs"
                 >
-                  {availableClasses.map(cls => (
-                    <option key={cls.id} value={cls.id}>
-                      {cls.name}
-                    </option>
+                  {classOptions.map(classId => (
+                    <option key={classId} value={classId}>{classId}</option>
                   ))}
                 </select>
               </div>
-            </div>
-          </div>
-        </div>
+            )}
 
-        {/* Next Class Info */}
-        {nextClass?.has_next_class && !nextClass.next_class.is_cancelled && (
-          <div className="bg-app-success bg-opacity-10 border border-app-success rounded-app p-4 mb-6">
+            {/* Timetable Grid */}
+            <TimetableGrid 
+              classId={isProfessor() && !isAdmin() ? user.class_id || selectedClass : selectedClass} 
+            />
+          </div>
+        )}
+
+        {activeTab === 'manage' && (isProfessor() || isAdmin()) && (
+          <TimetableManagement />
+        )}
+
+        {/* Info Cards */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <svg className="w-6 h-6 text-app-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Active Classes</h3>
+                <p className="text-sm text-gray-500">Classes running as scheduled</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-red-500 rounded"></div>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Cancelled Classes</h3>
+                <p className="text-sm text-gray-500">Classes cancelled by professor</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-app-success">
-                  Next Class
-                </h3>
-                <p className="mt-1 text-sm text-app-success">
-                  <strong>{nextClass.next_class.subject}</strong> on {nextClass.next_class.day} at {nextClass.next_class.period_start}-{nextClass.next_class.period_end}
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900">Quick Info</h3>
+                <p className="text-sm text-gray-500">
+                  {isStudent() && 'Check for class updates regularly'}
+                  {isProfessor() && 'Click on classes to cancel or restore'}
+                  {isAdmin() && 'Manage all class schedules'}
                 </p>
               </div>
             </div>
           </div>
-        )}
-
-        {/* Timetable Component */}
-        <Timetable 
-          userRole={userRole} 
-          selectedClassId={selectedClassId}
-        />
-
-        {/* Legend */}
-        <div className="mt-8 bg-app-card rounded-app p-6 shadow-app-card">
-          <h3 className="text-lg font-semibold text-app-text-primary mb-4">Legend</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-app-success rounded-full"></div>
-              <span className="text-sm text-app-text-secondary">Active Class</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-app-danger rounded-full"></div>
-              <span className="text-sm text-app-text-secondary">Cancelled Class</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 bg-app-primary rounded-full"></div>
-              <span className="text-sm text-app-text-secondary">Live Updates Active</span>
-            </div>
-          </div>
-          
-          {userRole === 'professor' && (
-            <div className="mt-4 p-4 bg-app-bg rounded-app">
-              <h4 className="font-medium text-app-text-primary mb-2">Professor Actions:</h4>
-              <ul className="text-sm text-app-text-secondary space-y-1">
-                <li>• Click "❌ Cancel" to cancel a class (requires reason)</li>
-                <li>• Click "↩️ Restore" to restore a cancelled class</li>
-                <li>• Changes are reflected in real-time for all students</li>
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </div>

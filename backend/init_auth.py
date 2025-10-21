@@ -9,7 +9,8 @@ from modules.auth.utils import create_default_admin, create_sample_users
 
 def init_auth_system():
     """Initialize authentication system"""
-    # Create tables
+    # Drop and recreate tables to ensure schema is updated
+    User.metadata.drop_all(bind=engine)
     User.metadata.create_all(bind=engine)
     
     # Create database session
@@ -27,10 +28,11 @@ def init_auth_system():
             print(f"✓ Created {len(sample_users)} sample users")
         
         print("\n🎉 Authentication system initialized successfully!")
-        print("\nDefault credentials:")
-        print("Admin: admin / admin123")
-        print("Professor: prof_smith / prof123")
-        print("Student: student_john / student123")
+        print("\nDefault credentials (User ID / Password):")
+        print("Admin: ADMIN001 / admin123")
+        print("Professor: EMP001 / prof123")
+        print("Student: 1MS21CS001 / student123")
+        print("\nNote: Use these User IDs for login (USN for students, Employee ID for professors, Admin ID for admins)")
         
     except Exception as e:
         print(f"❌ Error initializing auth system: {e}")

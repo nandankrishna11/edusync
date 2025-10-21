@@ -15,6 +15,7 @@ const UserManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [editData, setEditData] = useState({
+    user_id: '',
     username: '',
     email: '',
     full_name: '',
@@ -43,6 +44,7 @@ const UserManagement = () => {
   const handleEdit = (userToEdit) => {
     setSelectedUser(userToEdit);
     setEditData({
+      user_id: userToEdit.user_id,
       username: userToEdit.username,
       email: userToEdit.email,
       full_name: userToEdit.full_name,
@@ -177,10 +179,10 @@ const UserManagement = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {userItem.full_name || userItem.username}
+                          {userItem.full_name || userItem.user_id}
                         </div>
-                        <div className="text-sm text-gray-500">{userItem.email}</div>
-                        <div className="text-xs text-gray-400">@{userItem.username}</div>
+                        <div className="text-sm text-gray-500">{userItem.email || 'No email'}</div>
+                        <div className="text-xs text-gray-400">ID: {userItem.user_id}</div>
                       </div>
                     </div>
                   </td>
@@ -230,23 +232,22 @@ const UserManagement = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Edit User</h3>
               <form onSubmit={handleEditSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
                   <input
                     type="text"
-                    value={editData.username}
-                    onChange={(e) => setEditData({ ...editData, username: e.target.value })}
+                    value={editData.user_id}
+                    onChange={(e) => setEditData({ ...editData, user_id: e.target.value.toUpperCase() })}
                     className="form-input"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
                   <input
                     type="email"
-                    value={editData.email}
+                    value={editData.email || ''}
                     onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                     className="form-input"
-                    required
                   />
                 </div>
                 <div>

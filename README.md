@@ -283,4 +283,3 @@ For support and questions:
 
 ---
 
-**Built with ❤️ for modern education management**

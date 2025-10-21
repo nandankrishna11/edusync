@@ -12,7 +12,7 @@ class TimetableBase(BaseModel):
     period_start: str
     period_end: str
     subject: str
-    professor_id: str
+    professor_usn: str  # Professor USN (e.g., "PROF001")
 
 
 class TimetableCreate(TimetableBase):
@@ -25,7 +25,7 @@ class TimetableUpdate(BaseModel):
     period_start: Optional[str] = None
     period_end: Optional[str] = None
     subject: Optional[str] = None
-    professor_id: Optional[str] = None
+    professor_usn: Optional[str] = None
     is_cancelled: Optional[bool] = None
     cancel_reason: Optional[str] = None
 
@@ -49,6 +49,24 @@ class Timetable(TimetableBase):
     id: int
     is_cancelled: bool
     cancel_reason: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class TimetableResponse(BaseModel):
+    id: int
+    class_id: str
+    day: str
+    period_start: str
+    period_end: str
+    subject: str
+    professor_usn: str
+    is_cancelled: bool
+    cancel_reason: Optional[str] = None
+    status: str  # 'active', 'cancelled'
+    color_code: str  # 'green', 'red', 'yellow'
     created_at: datetime
     
     class Config:
