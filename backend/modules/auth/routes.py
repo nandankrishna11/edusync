@@ -6,15 +6,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import get_db
-from . import schemas, models, services
+from . import services
+from models.models import User
+from schemas.schemas import UserCreate, UserUpdate, User as UserSchema, LoginRequest, LoginResponse, Token, PasswordChange, ResetPasswordRequest
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-@router.post("/register", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
 def register_user(
-    user: schemas.UserCreate,
+    user: UserCreate,
     db: Session = Depends(get_db)
 ):
     """Register a new user"""
@@ -29,9 +31,9 @@ def register_user(
         )
 
 
-@router.post("/login", response_model=schemas.LoginResponse)
+@router.post("/login", response_model=LoginResponse)
 def login_user(
-    login_data: schemas.LoginRequest,
+    login_data: LoginRequest,
     db: Session = Depends(get_db)
 ):
     """Login with User ID and password"""
@@ -68,7 +70,7 @@ def login_user(
         )
 
 
-@router.post("/token", response_model=schemas.LoginResponse)
+@router.post("/token", response_model=LoginResponse)
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
@@ -95,9 +97,9 @@ def login_for_access_token(
     }
 
 
-@router.get("/me", response_model=schemas.User)
+@router.get("/me", response_model=UserSchema)
 async def read_users_me(
-    current_user: models.User = Depends(services.get_current_user)
+    current_user: User = Depends(services.get_current_user)
 ):
     """Get current user info"""
     return current_user
@@ -115,11 +117,11 @@ async def get_available_roles():
     }
 
 
-@router.get("/users", response_model=list[schemas.User])
+@router.get("/users", response_model=list[UserSchema])
 async def get_users(
     skip: int = 0,
-    limit: int = 100,
-    current_user: models.User = Depends(services.get_current_user),
+    limit: int = 1000,
+    current_user: User = Depends(services.get_current_user),
     db: Session = Depends(get_db)
 ):
     """Get all users (admin only)"""
@@ -131,10 +133,10 @@ async def get_users(
     return services.get_users(db, skip=skip, limit=limit)
 
 
-@router.get("/users/{user_id}", response_model=schemas.User)
+@router.get("/users/{user_id}", response_model=UserSchema)
 async def get_user(
     user_id: int,
-    current_user: models.User = Depends(services.get_current_user),
+    current_user: User = Depends(services.get_current_user),
     db: Session = Depends(get_db)
 ):
     """Get user by ID"""
@@ -153,11 +155,11 @@ async def get_user(
     return user
 
 
-@router.put("/users/{user_id}", response_model=schemas.User)
+@router.put("/users/{user_id}", response_model=UserSchema)
 async def update_user(
     user_id: int,
-    user_update: schemas.UserUpdate,
-    current_user: models.User = Depends(services.get_current_user),
+    user_update: UserUpdate,
+    current_user: User = Depends(services.get_current_user),
     db: Session = Depends(get_db)
 ):
     """Update user information"""
@@ -180,7 +182,7 @@ async def update_user(
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: int,
-    current_user: models.User = Depends(services.get_current_user),
+    current_user: User = Depends(services.get_current_user),
     db: Session = Depends(get_db)
 ):
     """Delete user (admin only)"""
@@ -201,7 +203,7 @@ async def delete_user(
 
 @router.post("/verify-token")
 async def verify_token(
-    current_user: models.User = Depends(services.get_current_user)
+    current_user: User = Depends(services.get_current_user)
 ):
     """Verify if token is valid"""
     return {"valid": True, "user": current_user}
@@ -209,8 +211,8 @@ async def verify_token(
 
 @router.post("/change-password")
 async def change_password(
-    password_data: schemas.PasswordChange,
-    current_user: models.User = Depends(services.get_current_user),
+    password_data: PasswordChange,
+    current_user: User = Depends(services.get_current_user),
     db: Session = Depends(get_db)
 ):
     """Change user password"""
@@ -224,7 +226,7 @@ async def change_password(
 
 @router.post("/reset-password")
 def reset_password(
-    reset_data: schemas.ResetPasswordRequest,
+    reset_data: ResetPasswordRequest,
     db: Session = Depends(get_db)
 ):
     """Reset password using User ID"""

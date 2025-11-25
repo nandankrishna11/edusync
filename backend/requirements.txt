@@ -15,8 +15,7 @@ passlib==1.7.4
 email-validator==2.3.0
 python-dotenv==1.1.1
 
-# AI/RAG dependencies (optional - only if using AI features)
-# sentence-transformers==2.2.2
-# faiss-cpu==1.8.0
-# transformers==4.35.2
-# numpy==1.24.3
+# AI/RAG dependencies
+sentence-transformers>=5.1.0
+chromadb>=1.3.0
+pdfplumber>=0.11.0

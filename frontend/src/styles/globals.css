@@ -323,7 +323,7 @@ body {
 
 /* Base styles */
 body {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   background-color: var(--color-background);
   color: var(--color-text-primary);
 }
@@ -823,4 +823,439 @@ body {
   .bulk-actions {
     @apply justify-center;
   }
+}
+/* ===
+== TIMETABLE SYSTEM STYLES ===== */
+
+/* Timetable Grid Layout */
+.timetable-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.timetable-day-card {
+  background: var(--color-background);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  border: 1px solid var(--color-border-light);
+}
+
+.timetable-class-card {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 2px solid;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timetable-class-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Timetable Status Colors */
+.timetable-status-active {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.timetable-status-cancelled {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.timetable-status-modified {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+/* Timetable Components */
+.timetable-time-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--color-background);
+}
+
+.timetable-subject-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-primary);
+}
+
+.timetable-class-info {
+  font-size: 0.875rem;
+  opacity: 0.75;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-secondary);
+}
+
+.timetable-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+/* Timetable Action Buttons */
+.timetable-cancel-btn {
+  background-color: var(--color-error);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timetable-cancel-btn:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.timetable-restore-btn {
+  background-color: var(--color-success);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timetable-restore-btn:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+/* Timetable Legend */
+.timetable-legend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.timetable-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.timetable-legend-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+/* Next Class Card */
+.timetable-next-class-card {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Timetable Statistics */
+.timetable-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--color-background);
+  border-top: 1px solid var(--color-border-light);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.timetable-stat-item {
+  text-align: center;
+}
+
+.timetable-stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-primary);
+}
+
+.timetable-stat-label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* Day Filter */
+.timetable-day-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+}
+
+.timetable-filter-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timetable-filter-btn-active {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.timetable-filter-btn-inactive {
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.timetable-filter-btn-inactive:hover {
+  background-color: var(--color-background);
+  border-color: var(--color-primary);
+}
+
+/* Timetable Modal */
+.timetable-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(4px);
+}
+
+.timetable-modal-content {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  max-width: 28rem;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border-light);
+}
+
+/* Timetable Form Elements */
+.timetable-form-group {
+  margin-bottom: 1rem;
+}
+
+.timetable-form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.timetable-form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.timetable-form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.timetable-form-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  resize: vertical;
+  min-height: 4rem;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timetable-form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* System Toggle */
+.timetable-system-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background-color: var(--color-background);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border-light);
+}
+
+.timetable-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timetable-radio-input {
+  margin-right: 0.25rem;
+  accent-color: var(--color-primary);
+}
+
+/* Status Icons */
+.timetable-status-icon {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+.timetable-status-icon.active {
+  background-color: var(--color-success);
+}
+
+.timetable-status-icon.cancelled {
+  background-color: var(--color-error);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .timetable-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .timetable-day-filter {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  
+  .timetable-action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .timetable-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .timetable-legend {
+    justify-content: center;
+  }
+  
+  .timetable-next-class-card {
+    padding: 1rem;
+  }
+  
+  .timetable-modal-content {
+    width: 95%;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .timetable-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .timetable-legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .timetable-system-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Animation for timetable cards */
+.timetable-class-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effects for better UX */
+.timetable-day-card:hover {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.timetable-filter-btn:active {
+  transform: scale(0.95);
+}
+
+.timetable-cancel-btn:active,
+.timetable-restore-btn:active {
+  transform: scale(0.95);
+}
+
+/* Loading states */
+.timetable-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--color-text-secondary);
+}
+
+.timetable-loading .spinner {
+  margin-right: 0.5rem;
+}
+
+/* Empty states */
+.timetable-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-secondary);
+}
+
+.timetable-empty-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  opacity: 0.5;
 }

@@ -3,6 +3,7 @@ Authentication utilities
 """
 from sqlalchemy.orm import Session
 from . import models, services, schemas
+from utils.usn_utils import USNValidator, validate_user_id, parse_usn
 
 
 def create_default_admin(db: Session):
@@ -40,10 +41,31 @@ def create_sample_users(db: Session):
             "role": "professor"
         },
         {
-            "user_id": "1MS21CS001",  # USN for student
+            "user_id": "EMP002",  # Employee ID for professor
+            "password": "prof123",
+            "full_name": "Professor Johnson",
+            "email": "johnson@classroom.com",
+            "role": "professor"
+        },
+        {
+            "user_id": "4KV22CS001",  # USN for student
             "password": "student123",
             "full_name": "John Doe",
             "email": "john@classroom.com",
+            "role": "student"
+        },
+        {
+            "user_id": "4KV22CS002",  # USN for student
+            "password": "student123",
+            "full_name": "Jane Smith",
+            "email": "jane@classroom.com",
+            "role": "student"
+        },
+        {
+            "user_id": "4KV22ME001",  # USN for student
+            "password": "student123",
+            "full_name": "Mike Johnson",
+            "email": "mike@classroom.com",
             "role": "student"
         }
     ]
@@ -64,3 +86,32 @@ def create_sample_users(db: Session):
                 print(f"Error creating sample user {user_data['user_id']}: {e}")
     
     return created_users
+
+
+def validate_usn_format(usn: str) -> bool:
+    """Validate USN format using USNValidator"""
+    return USNValidator.validate_usn(usn)
+
+
+def validate_user_id_format(user_id: str) -> tuple[bool, str]:
+    """Validate user ID format and return role"""
+    return validate_user_id(user_id)
+
+
+def extract_usn_info(usn: str) -> dict:
+    """Extract information from USN"""
+    return parse_usn(usn) or {}
+
+
+def generate_user_data_from_usn(usn: str) -> dict:
+    """Generate additional user data from USN"""
+    parsed = parse_usn(usn)
+    if not parsed:
+        return {}
+    
+    return {
+        "student_usn": usn,
+        "department_code": parsed.get("department_code"),
+        "institution_code": parsed.get("institution_code"),
+        "joined_year": parsed.get("joined_year")
+    }

@@ -5,25 +5,39 @@ import api from '../../../api/client';
 
 export const authService = {
   async login(credentials) {
+    console.log('AuthService: Attempting login for user:', credentials.user_id);
+    
     // Try the new user_id-based login endpoint first
     try {
+      console.log('AuthService: Trying /auth/login endpoint');
       const response = await api.post('/auth/login', {
         user_id: credentials.user_id,
         password: credentials.password
       });
+      console.log('AuthService: Login successful via /auth/login');
       return response.data;
     } catch (error) {
-      // Fallback to token endpoint for backward compatibility
-      const formData = new FormData();
-      formData.append('username', credentials.user_id);  // Send user_id as username for OAuth2 compatibility
-      formData.append('password', credentials.password);
+      console.log('AuthService: /auth/login failed, trying /auth/token fallback');
       
-      const response = await api.post('/auth/token', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data;
+      // Fallback to token endpoint for backward compatibility
+      try {
+        const formData = new FormData();
+        formData.append('username', credentials.user_id);  // Send user_id as username for OAuth2 compatibility
+        formData.append('password', credentials.password);
+        
+        const response = await api.post('/auth/token', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        console.log('AuthService: Login successful via /auth/token');
+        return response.data;
+      } catch (fallbackError) {
+        console.error('AuthService: Both login methods failed');
+        console.error('Primary error:', error.response?.data || error.message);
+        console.error('Fallback error:', fallbackError.response?.data || fallbackError.message);
+        throw fallbackError;
+      }
     }
   },
 
@@ -48,7 +62,7 @@ export const authService = {
     return response.data;
   },
 
-  async getUsers(skip = 0, limit = 100) {
+  async getUsers(skip = 0, limit = 1000) {
     const response = await api.get(`/auth/users?skip=${skip}&limit=${limit}`);
     return response.data;
   },

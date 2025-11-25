@@ -108,8 +108,9 @@ const UserProfile = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{user?.full_name || user?.username}</h1>
-              <p className="text-indigo-100">{user?.email}</p>
+              <h1 className="text-2xl font-bold text-white">{user?.full_name || user?.user_id}</h1>
+              <p className="text-indigo-100">{user?.email || 'No email provided'}</p>
+              <p className="text-indigo-200 text-sm">ID: {user?.user_id}</p>
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 ${getRoleColor(user?.role)}`}>
                 {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
               </span>
@@ -172,16 +173,17 @@ const UserProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Username
+                    User ID
                   </label>
                   <input
                     type="text"
-                    name="username"
-                    value={profileData.username}
-                    onChange={handleProfileChange}
-                    className="form-input"
-                    required
+                    value={user?.user_id}
+                    className="form-input bg-gray-50"
+                    disabled
                   />
+                  <p className="mt-1 text-sm text-gray-500">
+                    User ID cannot be changed. Contact administrator if needed.
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -200,7 +202,7 @@ const UserProfile = () => {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email Address
+                  Email Address (Optional)
                 </label>
                 <input
                   type="email"
@@ -208,8 +210,11 @@ const UserProfile = () => {
                   value={profileData.email}
                   onChange={handleProfileChange}
                   className="form-input"
-                  required
+                  placeholder="Enter your email address"
                 />
+                <p className="mt-1 text-sm text-gray-500">
+                  Email is optional but recommended for notifications.
+                </p>
               </div>
 
               <div>

@@ -1,0 +1,67 @@
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
+
+export const Modal = ({ 
+  isOpen, 
+  onClose, 
+  title, 
+  children, 
+  footer,
+  size = 'md' 
+}) => {
+  const sizes = {
+    sm: 'max-w-md',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-6xl',
+  };
+  
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+  
+  if (!isOpen) return null;
+  
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div className={`bg-white rounded-3xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden animate-scale-in`}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {title}
+          </h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Content */}
+        <div className="px-6 py-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          {children}
+        </div>
+        
+        {/* Footer */}
+        {footer && (
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+export default Modal;

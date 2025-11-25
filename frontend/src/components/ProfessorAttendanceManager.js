@@ -1,335 +1,327 @@
-import { useState, useEffect } from 'react';
+/**
+ * Enhanced Professor Attendance Manager
+ * USN-based attendance marking with automatic class generation
+ */
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../features/auth/hooks/useAuth';
-import { useApi } from '../hooks/useApi';
+import api from '../api/client';
 
 const ProfessorAttendanceManager = () => {
   const { user } = useAuth();
-  const { apiCall, loading, error } = useApi();
-  const [myClasses, setMyClasses] = useState([]);
+  const [assignedClasses, setAssignedClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [selectedSubject, setSelectedSubject] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [students, setStudents] = useState([]);
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [attendanceData, setAttendanceData] = useState({});
-  const [bulkStatus, setBulkStatus] = useState('present');
 
   useEffect(() => {
-    if (user && user.role === 'professor') {
-      fetchMyClasses();
-    }
-  }, [user]);
+    fetchAssignedClasses();
+  }, []);
 
-  const fetchMyClasses = async () => {
+  const fetchAssignedClasses = async () => {
     try {
-      const response = await apiCall('/attendance/professor/my-classes');
-      setMyClasses(response.assigned_classes || []);
-    } catch (err) {
-      console.error('Error fetching classes:', err);
-      setMyClasses([]);
+      setLoading(true);
+      const response = await api.get('/enhanced/attendance/professor/classes');
+      setAssignedClasses(response.data.assigned_classes || []);
+    } catch (error) {
+      setError('Failed to fetch assigned classes');
+      console.error('Error fetching classes:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchClassStudents = async () => {
-    if (!selectedClass || !selectedSubject) return;
-
+  const fetchClassStudents = async (classInfo) => {
     try {
-      const params = new URLSearchParams({
-        subject: selectedSubject,
-        date_filter: selectedDate
-      });
+      setLoading(true);
+      setError('');
       
-      const response = await apiCall(`/attendance/professor/class-students/${selectedClass}?${params.toString()}`);
-      setStudents(response.students || []);
+      const params = new URLSearchParams({
+        department_code: classInfo.department_code,
+        semester: classInfo.semester.toString(),
+        section: classInfo.section,
+        subject_code: classInfo.subject_code,
+        date_filter: attendanceDate
+      });
+
+      const response = await api.get(`/enhanced/attendance/class-students?${params}`);
+      setStudents(response.data.students || []);
+      setSelectedClass(classInfo);
       
       // Initialize attendance data
       const initialAttendance = {};
-      (response.students || []).forEach(student => {
-        initialAttendance[student.usn] = student.attendance_status || 'not_marked';
+      response.data.students.forEach(student => {
+        initialAttendance[student.student_usn] = student.attendance_status || 'present';
       });
       setAttendanceData(initialAttendance);
-    } catch (err) {
-      console.error('Error fetching students:', err);
-      setStudents([]);
-      setAttendanceData({});
+      
+    } catch (error) {
+      setError('Failed to fetch class students');
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (selectedClass && selectedSubject) {
-      fetchClassStudents();
-    }
-  }, [selectedClass, selectedSubject, selectedDate]);
-
-  const handleClassSelect = (classData) => {
-    setSelectedClass(classData.class_id);
-    setSelectedSubject(classData.subject);
-    setStudents([]);
-    setAttendanceData({});
-  };
-
-  const handleAttendanceChange = (usn, status) => {
+  const handleAttendanceChange = (studentUsn, status) => {
     setAttendanceData(prev => ({
       ...prev,
-      [usn]: status
+      [studentUsn]: status
     }));
   };
 
-  const handleBulkAttendance = () => {
-    const newAttendanceData = {};
-    students.forEach(student => {
-      newAttendanceData[student.usn] = bulkStatus;
-    });
-    setAttendanceData(newAttendanceData);
-  };
-
   const submitAttendance = async () => {
-    if (!selectedClass || !selectedSubject) {
-      alert('Please select a class and subject');
-      return;
-    }
+    if (!selectedClass) return;
 
     try {
+      setLoading(true);
+      setError('');
+
+      // Prepare attendance records
       const attendanceRecords = students.map(student => ({
-        usn: student.usn,
-        status: attendanceData[student.usn] || 'absent'
+        student_usn: student.student_usn,
+        status: attendanceData[student.student_usn] || 'present'
       }));
 
       const bulkData = {
-        class_id: selectedClass,
-        date: selectedDate,
-        subject: selectedSubject,
+        department_code: selectedClass.department_code,
+        semester: selectedClass.semester,
+        section: selectedClass.section,
+        subject_code: selectedClass.subject_code,
+        date: attendanceDate,
+        period_start: "09:00", // Default period
+        period_end: "10:00",
+        professor_usn: user.user_id,
         attendance_records: attendanceRecords
       };
 
-      const response = await apiCall('/attendance/bulk', {
-        method: 'POST',
-        body: JSON.stringify(bulkData)
-      });
-
-      if (response.created_count > 0) {
-        alert(`Successfully marked attendance for ${response.created_count} students`);
-        fetchClassStudents(); // Refresh the data
+      const response = await api.post('/enhanced/attendance/bulk', bulkData);
+      
+      if (response.data.created_count > 0) {
+        setSuccess(`Successfully marked attendance for ${response.data.created_count} students`);
+        // Refresh student list to show updated attendance
+        fetchClassStudents(selectedClass);
+      }
+      
+      if (response.data.errors && response.data.errors.length > 0) {
+        setError(`Some records failed: ${response.data.errors.length} errors`);
       }
 
-      if (response.errors && response.errors.length > 0) {
-        console.warn('Some errors occurred:', response.errors);
-        alert(`Attendance marked with ${response.errors.length} errors. Check console for details.`);
-      }
-    } catch (err) {
-      console.error('Error submitting attendance:', err);
-      alert('Error submitting attendance. Please try again.');
+    } catch (error) {
+      setError('Failed to submit attendance');
+      console.error('Error submitting attendance:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'present': return 'bg-green-100 text-green-800';
-      case 'absent': return 'bg-red-100 text-red-800';
-      case 'cancelled': return 'bg-gray-100 text-gray-800';
-      case 'not_marked': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getAttendanceStats = () => {
+    const total = students.length;
+    const present = Object.values(attendanceData).filter(status => status === 'present').length;
+    const absent = Object.values(attendanceData).filter(status => status === 'absent').length;
+    
+    return { total, present, absent };
   };
 
-  const getAttendanceColor = (percentage) => {
-    if (percentage >= 85) return 'text-green-600';
-    if (percentage >= 75) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  const stats = getAttendanceStats();
 
-  if (user?.role !== 'professor') {
+  if (loading && assignedClasses.length === 0) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-red-600">This page is only accessible to professors.</p>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Attendance Management</h1>
-        <p className="text-gray-600">Mark attendance for your assigned classes and subjects</p>
+    <div className="max-w-7xl mx-auto p-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl text-white p-6 mb-6">
+        <h1 className="text-3xl font-bold mb-2">Attendance Management</h1>
+        <p className="text-indigo-100">Mark attendance for your assigned classes</p>
       </div>
 
+      {/* Alerts */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          {typeof error === 'string' ? error : 'An error occurred while loading data'}
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg mb-6">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {/* My Classes Overview */}
-      <div className="bg-white rounded-lg shadow-sm border mb-6">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">My Assigned Classes</h2>
+      {success && (
+        <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg mb-6">
+          <p className="text-sm text-green-700">{success}</p>
         </div>
-        <div className="p-6">
-          {myClasses.length === 0 ? (
-            <p className="text-gray-500">No classes assigned to you.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myClasses.map((classData, index) => (
-                <div
-                  key={index}
-                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                    selectedClass === classData.class_id && selectedSubject === classData.subject
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleClassSelect(classData)}
-                >
-                  <h3 className="font-semibold text-lg text-gray-900">{classData.subject}</h3>
-                  <p className="text-gray-600 mb-2">Class: {classData.class_id}</p>
-                  <div className="text-sm text-gray-500">
-                    <p>Students: {classData.total_students}</p>
-                    <p>Classes Conducted: {classData.attendance_summary.total_classes_conducted}</p>
-                    <p className={`font-medium ${getAttendanceColor(classData.attendance_summary.average_attendance)}`}>
-                      Avg Attendance: {classData.attendance_summary.average_attendance}%
-                    </p>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-400">Schedule:</p>
-                    {classData.schedule.slice(0, 2).map((schedule, idx) => (
-                      <p key={idx} className="text-xs text-gray-500">
-                        {schedule.day}: {schedule.period_start}-{schedule.period_end}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      )}
 
-      {/* Attendance Marking Section */}
-      {selectedClass && selectedSubject && (
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Mark Attendance - {selectedSubject} ({selectedClass})
-            </h2>
-          </div>
-          <div className="p-6">
-            {/* Date Selection and Bulk Actions */}
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Class Selection */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Your Classes</h2>
+            
+            {assignedClasses.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No classes assigned</p>
+            ) : (
+              <div className="space-y-3">
+                {assignedClasses.map((classInfo, index) => (
+                  <div
+                    key={index}
+                    onClick={() => fetchClassStudents(classInfo)}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedClass?.subject_code === classInfo.subject_code
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-semibold text-gray-900">
+                      {classInfo.subject_code}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {classInfo.subject_name}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {classInfo.department_code} Semester {classInfo.semester} Section {classInfo.section}
+                    </div>
+                    <div className="text-xs text-indigo-600 mt-1">
+                      {classInfo.total_students} students
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Bulk Action
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    value={bulkStatus}
-                    onChange={(e) => setBulkStatus(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="present">Mark All Present</option>
-                    <option value="absent">Mark All Absent</option>
-                    <option value="cancelled">Mark Class Cancelled</option>
-                  </select>
+            )}
+          </div>
+        </div>
+
+        {/* Attendance Marking */}
+        <div className="lg:col-span-2">
+          {selectedClass ? (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {selectedClass.subject_code} - {selectedClass.subject_name}
+                  </h2>
+                  <p className="text-gray-600">
+                    {selectedClass.department_code} Semester {selectedClass.semester} Section {selectedClass.section}
+                  </p>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="date"
+                    value={attendanceDate}
+                    onChange={(e) => setAttendanceDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
                   <button
-                    onClick={handleBulkAttendance}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                    onClick={() => fetchClassStudents(selectedClass)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                   >
-                    Apply
+                    Refresh
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Students List */}
-            {students.length === 0 ? (
-              <p className="text-gray-500">No students found for this class.</p>
-            ) : (
-              <>
-                <div className="overflow-x-auto mb-6">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          USN
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Current Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Mark Attendance
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Overall %
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {students.map((student, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {student.usn}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {student.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(student.attendance_status || 'not_marked')}`}>
-                              {(student.attendance_status || 'not_marked').replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <select
-                              value={attendanceData[student.usn] || 'not_marked'}
-                              onChange={(e) => handleAttendanceChange(student.usn, e.target.value)}
-                              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="not_marked">Not Marked</option>
-                              <option value="present">Present</option>
-                              <option value="absent">Absent</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {student.attendance_percentage !== undefined ? (
-                              <span className={getAttendanceColor(student.attendance_percentage)}>
-                                {student.attendance_percentage}%
-                              </span>
-                            ) : (
-                              'N/A'
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {/* Attendance Stats */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
+                  <div className="text-sm text-blue-600">Total Students</div>
                 </div>
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-green-600">{stats.present}</div>
+                  <div className="text-sm text-green-600">Present</div>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg text-center">
+                  <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
+                  <div className="text-sm text-red-600">Absent</div>
+                </div>
+              </div>
 
-                {/* Submit Button */}
-                <div className="flex justify-end">
+              {/* Student List */}
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {students.map((student, index) => (
+                  <div
+                    key={student.student_usn}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-indigo-600">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {student.name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {student.student_usn}
+                        </div>
+                        {!student.is_registered && (
+                          <div className="text-xs text-orange-600">
+                            Not registered in system
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name={`attendance_${student.student_usn}`}
+                          value="present"
+                          checked={attendanceData[student.student_usn] === 'present'}
+                          onChange={() => handleAttendanceChange(student.student_usn, 'present')}
+                          className="mr-2 text-green-600"
+                        />
+                        <span className="text-sm text-green-600">Present</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name={`attendance_${student.student_usn}`}
+                          value="absent"
+                          checked={attendanceData[student.student_usn] === 'absent'}
+                          onChange={() => handleAttendanceChange(student.student_usn, 'absent')}
+                          className="mr-2 text-red-600"
+                        />
+                        <span className="text-sm text-red-600">Absent</span>
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Submit Button */}
+              {students.length > 0 && (
+                <div className="mt-6 flex justify-end">
                   <button
                     onClick={submitAttendance}
                     disabled={loading}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                   >
                     {loading ? 'Submitting...' : 'Submit Attendance'}
                   </button>
                 </div>
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Class</h3>
+              <p className="text-gray-500">Choose a class from the left panel to mark attendance</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

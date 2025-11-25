@@ -5,11 +5,12 @@ from typing import List
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
-from . import models, services
+from . import services
+from models.models import User
 
 
 def get_current_active_user(
-    current_user: models.User = Depends(services.get_current_user)
+    current_user: User = Depends(services.get_current_user)
 ):
     """Get current active user"""
     if not current_user.is_active:
@@ -23,7 +24,7 @@ def get_current_active_user(
 def require_roles(allowed_roles: List[str]):
     """Dependency factory to require specific roles"""
     def role_checker(
-        current_user: models.User = Depends(get_current_active_user)
+        current_user: User = Depends(get_current_active_user)
     ):
         if current_user.role not in allowed_roles:
             raise HTTPException(
@@ -42,7 +43,7 @@ require_professor_or_admin = require_roles(["professor", "admin"])
 def require_permission(permission: str):
     """Dependency factory to require specific permission"""
     def permission_checker(
-        current_user: models.User = Depends(get_current_active_user)
+        current_user: User = Depends(get_current_active_user)
     ):
         if not services.has_permission(current_user, permission):
             raise HTTPException(

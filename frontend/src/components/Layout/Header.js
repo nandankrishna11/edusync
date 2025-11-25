@@ -1,14 +1,28 @@
 /**
  * Modern Header Component
  */
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { LogoutButton } from '../../features/auth/components';
+import { RoleBadge } from '../ui/Badge';
 
 const Header = () => {
   const { user, loading } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (loading) {
     return (
@@ -24,7 +38,7 @@ const Header = () => {
   }
 
   return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 fixed top-0 right-0 left-64 z-20 shadow-sm">
+    <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 fixed top-0 right-0 left-64 z-20 shadow-sm">
       <div className="px-8 py-4 flex justify-between items-center">
         {/* Welcome Section */}
         <div className="flex items-center space-x-4">
@@ -33,9 +47,7 @@ const Header = () => {
               Welcome back, {user?.full_name || user?.username || 'User'}
             </h2>
             <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 capitalize">
-                {user?.role || 'student'}
-              </span>
+              <RoleBadge role={user?.role || 'student'} />
               <span className="text-sm text-gray-500">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
@@ -67,57 +79,61 @@ const Header = () => {
           </button>
 
           {/* User Profile Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-50 transition-all duration-200"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-sm font-semibold text-white">
                   {(user?.full_name || user?.username || 'U').charAt(0).toUpperCase()}
                 </span>
               </div>
-              <div className="text-left">
-                <div className="text-sm font-medium text-gray-900">
+              <div className="text-left hidden md:block">
+                <div className="text-sm font-semibold text-gray-900">
                   {user?.full_name || user?.username}
                 </div>
                 <div className="text-xs text-gray-500 capitalize">
                   {user?.role}
                 </div>
               </div>
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             {/* Dropdown Menu */}
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 z-50 animate-fade-in-down">
                 <Link
                   to="/profile"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-xl mx-2"
                   onClick={() => setShowProfileMenu(false)}
                 >
-                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Profile Settings
+                  <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Profile Settings</span>
                 </Link>
                 {user?.role === 'admin' && (
                   <Link
                     to="/admin/users"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-xl mx-2"
                     onClick={() => setShowProfileMenu(false)}
                   >
-                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
-                    User Management
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                      </svg>
+                    </div>
+                    <span className="font-medium">User Management</span>
                   </Link>
                 )}
-                <hr className="my-1" />
-                <div className="px-4 py-2">
-                  <LogoutButton className="w-full justify-start text-sm" />
+                <hr className="my-2 border-gray-200" />
+                <div className="px-2">
+                  <LogoutButton className="w-full justify-start text-sm hover:bg-red-50 rounded-xl" />
                 </div>
               </div>
             )}

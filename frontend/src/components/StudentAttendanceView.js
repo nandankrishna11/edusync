@@ -1,50 +1,48 @@
-import { useState, useEffect } from 'react';
+/**
+ * Enhanced Student Attendance View
+ * Shows subject-wise attendance with detailed reports
+ */
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../features/auth/hooks/useAuth';
-import { useApi } from '../hooks/useApi';
+import api from '../api/client';
 
 const StudentAttendanceView = () => {
   const { user } = useAuth();
-  const { apiCall, loading, error } = useApi();
-  const [attendanceData, setAttendanceData] = useState(null);
-  const [filters, setFilters] = useState({
-    semester: '',
-    subject: '',
-    dateFrom: '',
-    dateTo: ''
-  });
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [detailedRecords, setDetailedRecords] = useState([]);
 
   useEffect(() => {
-    if (user && user.role === 'student') {
-      fetchMyAttendance();
-    }
-  }, [user]);
+    fetchStudentDashboard();
+  }, []);
 
-  const fetchMyAttendance = async () => {
+  const fetchStudentDashboard = async () => {
     try {
-      const params = new URLSearchParams();
-      if (filters.semester) params.append('semester', filters.semester);
-      if (filters.subject) params.append('subject', filters.subject);
-      if (filters.dateFrom) params.append('date_from', filters.dateFrom);
-      if (filters.dateTo) params.append('date_to', filters.dateTo);
-
-      const response = await apiCall(`/attendance/student/my-attendance?${params.toString()}`);
-      setAttendanceData(response);
-    } catch (err) {
-      console.error('Error fetching attendance:', err);
-      setAttendanceData(null);
+      setLoading(true);
+      const response = await api.get('/enhanced/student/dashboard');
+      setDashboard(response.data);
+    } catch (error) {
+      setError('Failed to fetch attendance data');
+      console.error('Error fetching dashboard:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const applyFilters = () => {
-    fetchMyAttendance();
+  const fetchDetailedRecords = async (subjectCode) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/enhanced/attendance/student/detailed?subject_code=${subjectCode}`);
+      setDetailedRecords(response.data.records || []);
+      setSelectedSubject(subjectCode);
+    } catch (error) {
+      setError('Failed to fetch detailed records');
+      console.error('Error fetching detailed records:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getAttendanceColor = (percentage) => {
@@ -53,248 +51,273 @@ const StudentAttendanceView = () => {
     return 'text-red-600 bg-red-100';
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'present': return 'text-green-600 bg-green-100';
-      case 'absent': return 'text-red-600 bg-red-100';
-      case 'cancelled': return 'text-gray-600 bg-gray-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
+  const getAttendanceStatus = (percentage) => {
+    if (percentage >= 85) return 'Excellent';
+    if (percentage >= 75) return 'Good';
+    if (percentage >= 65) return 'Warning';
+    return 'Critical';
   };
 
-  if (user?.role !== 'student') {
+  if (loading && !dashboard) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-red-600">This page is only accessible to students.</p>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (error && !dashboard) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Attendance</h1>
-        <p className="text-gray-600">View your attendance records across all subjects</p>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="max-w-7xl mx-auto p-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl text-white p-6 mb-6">
+        <div className="flex items-center justify-between">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Semester
-            </label>
-            <input
-              type="text"
-              name="semester"
-              value={filters.semester}
-              onChange={handleFilterChange}
-              placeholder="e.g., 3, 5"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <h1 className="text-3xl font-bold mb-2">My Attendance</h1>
+            <p className="text-blue-100">
+              {dashboard?.student_usn} - {dashboard?.department_code} Semester {dashboard?.semester}
+            </p>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subject
-            </label>
-            <input
-              type="text"
-              name="subject"
-              value={filters.subject}
-              onChange={handleFilterChange}
-              placeholder="Subject name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="text-right">
+            <div className="text-3xl font-bold">{dashboard?.overall_attendance?.toFixed(1)}%</div>
+            <div className="text-blue-100">Overall Attendance</div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              From Date
-            </label>
-            <input
-              type="date"
-              name="dateFrom"
-              value={filters.dateFrom}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              To Date
-            </label>
-            <input
-              type="date"
-              name="dateTo"
-              value={filters.dateTo}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-        <div className="mt-4">
-          <button
-            onClick={applyFilters}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Apply Filters'}
-          </button>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          {typeof error === 'string' ? error : 'An error occurred while loading attendance data'}
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg mb-6">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {attendanceData && (
-        <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Records</h3>
-              <p className="text-3xl font-bold text-blue-600">{attendanceData.total_records}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Subject-wise Attendance */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Subject-wise Attendance</h2>
+            
+            {dashboard?.attendance_summary?.length === 0 ? (
+              <div className="text-center py-8">
+                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002 2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Attendance Records</h3>
+                <p className="text-gray-500">Your attendance records will appear here once classes begin</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {dashboard?.attendance_summary?.map((subject, index) => (
+                  <div
+                    key={subject.subject_code}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => fetchDetailedRecords(subject.subject_code)}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{subject.subject_code}</h3>
+                        <p className="text-sm text-gray-600">
+                          {subject.department_code} Semester {subject.semester}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-2xl font-bold ${getAttendanceColor(subject.attendance_percentage).split(' ')[0]}`}>
+                          {subject.attendance_percentage?.toFixed(1)}%
+                        </div>
+                        <div className={`text-xs px-2 py-1 rounded-full ${getAttendanceColor(subject.attendance_percentage)}`}>
+                          {getAttendanceStatus(subject.attendance_percentage)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 gap-4 text-sm">
+                      <div className="text-center">
+                        <div className="font-medium text-gray-900">{subject.total_classes}</div>
+                        <div className="text-gray-500">Total</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-green-600">{subject.present_count}</div>
+                        <div className="text-gray-500">Present</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-red-600">{subject.absent_count}</div>
+                        <div className="text-gray-500">Absent</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-gray-600">{subject.cancelled_count}</div>
+                        <div className="text-gray-500">Cancelled</div>
+                      </div>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mt-3">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${
+                            subject.attendance_percentage >= 85 ? 'bg-green-500' :
+                            subject.attendance_percentage >= 75 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${Math.min(subject.attendance_percentage, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Attendance Summary & Details */}
+        <div className="lg:col-span-1">
+          {/* Overall Stats */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Overall Statistics</h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Overall Attendance</span>
+                <span className={`font-bold ${getAttendanceColor(dashboard?.overall_attendance || 0).split(' ')[0]}`}>
+                  {dashboard?.overall_attendance?.toFixed(1)}%
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Total Subjects</span>
+                <span className="font-bold text-gray-900">
+                  {dashboard?.attendance_summary?.length || 0}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Department</span>
+                <span className="font-bold text-gray-900">
+                  {dashboard?.department_code}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Semester</span>
+                <span className="font-bold text-gray-900">
+                  {dashboard?.semester}
+                </span>
+              </div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Subjects</h3>
-              <p className="text-3xl font-bold text-green-600">{attendanceData.subject_wise_summary.length}</p>
+          </div>
+
+          {/* Attendance Guidelines */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Attendance Guidelines</h3>
+            
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-gray-700">85%+ : Excellent (Eligible for all exams)</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span className="text-gray-700">75-84% : Good (Eligible for exams)</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span className="text-gray-700">65-74% : Warning (Improvement needed)</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="text-gray-700">&lt;65% : Critical (May not be eligible)</span>
+              </div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Overall Average</h3>
-              <p className="text-3xl font-bold text-purple-600">
-                {attendanceData.subject_wise_summary.length > 0
-                  ? Math.round(
-                      attendanceData.subject_wise_summary.reduce((sum, subject) => sum + subject.attendance_percentage, 0) /
-                      attendanceData.subject_wise_summary.length
-                    )
-                  : 0}%
+            
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-xs text-blue-700">
+                <strong>Note:</strong> Minimum 75% attendance is required to be eligible for semester exams.
               </p>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Subject-wise Summary */}
-          <div className="bg-white rounded-lg shadow-sm border mb-6">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">Subject-wise Attendance</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Subject
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Class
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Classes
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Present
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Absent
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Attendance %
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {attendanceData.subject_wise_summary.map((subject, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {subject.subject}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {subject.class_id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {subject.total_classes}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                        {subject.present}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                        {subject.absent}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getAttendanceColor(subject.attendance_percentage)}`}>
-                          {subject.attendance_percentage}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Detailed Records Modal */}
+      {selectedSubject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Detailed Attendance - {selectedSubject}
+                </h3>
+                <button
+                  onClick={() => setSelectedSubject(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {detailedRecords.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No detailed records available</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Period
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Marked By
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {detailedRecords.map((record, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(record.date).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {record.period_start} - {record.period_end}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              record.status === 'present' ? 'bg-green-100 text-green-800' :
+                              record.status === 'absent' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {record.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {record.professor_usn}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Detailed Records */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">Detailed Attendance Records</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Subject
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Class
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Time
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Marked By
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {attendanceData.detailed_records.map((record, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(record.date).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.subject}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {record.class_id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {record.period_start && record.period_end 
-                          ? `${record.period_start} - ${record.period_end}`
-                          : 'N/A'
-                        }
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
-                          {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {record.marked_by || 'N/A'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

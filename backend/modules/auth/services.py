@@ -4,15 +4,17 @@ Authentication services
 from datetime import datetime, timedelta
 from typing import Optional, List
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import hashlib
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from core.config import settings
 from database import get_db
-from . import models, schemas
+from models.models import User
+from schemas.schemas import UserCreate, UserUpdate, TokenData
 
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+import bcrypt
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Role-based permissions
@@ -33,19 +35,24 @@ ROLE_PERMISSIONS = {
 
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify password using bcrypt"""
+    try:
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception:
+        return False
 
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    """Hash password using bcrypt"""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
 def get_user(db: Session, username: str):
-    return db.query(models.User).filter(models.User.username == username).first()
+    return db.query(User).filter(User.username == username).first()
 
 
 def get_user_by_user_id(db: Session, user_id: str):
-    return db.query(models.User).filter(models.User.user_id == user_id).first()
+    return db.query(User).filter(User.user_id == user_id).first()
 
 
 def authenticate_user(db: Session, user_id: str, password: str):
@@ -77,7 +84,7 @@ def verify_token(token: str):
         return None
 
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: UserCreate):
     # Check if user_id already exists
     existing_user = get_user_by_user_id(db, user.user_id)
     if existing_user:
@@ -88,7 +95,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     
     # Check email uniqueness if provided
     if user.email:
-        existing_email = db.query(models.User).filter(models.User.email == user.email).first()
+        existing_email = db.query(User).filter(User.email == user.email).first()
         if existing_email:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -96,13 +103,27 @@ def create_user(db: Session, user: schemas.UserCreate):
             )
     
     hashed_password = get_password_hash(user.password)
-    db_user = models.User(
+    
+    # Extract additional data for students with USN
+    student_usn = None
+    department_code = user.department_code
+    
+    if user.role == "student" and user.user_id:
+        # For students, user_id is the USN
+        student_usn = user.user_id
+        # Extract department code from USN if not provided
+        if not department_code and len(user.user_id) >= 7:
+            department_code = user.user_id[5:7]  # Extract CS, ME, etc.
+    
+    db_user = User(
         user_id=user.user_id,
         username=user.user_id,  # Use user_id as username for backward compatibility
         email=user.email,
         hashed_password=hashed_password,
         full_name=user.full_name,
-        role=user.role
+        role=user.role,
+        student_usn=student_usn,
+        department_code=department_code
     )
     db.add(db_user)
     db.commit()
@@ -112,15 +133,15 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 def get_user_by_id(db: Session, user_id: int):
     """Get user by ID"""
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(User).filter(User.id == user_id).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100):
+def get_users(db: Session, skip: int = 0, limit: int = 1000):
     """Get all users with pagination"""
-    return db.query(models.User).offset(skip).limit(limit).all()
+    return db.query(User).offset(skip).limit(limit).all()
 
 
-def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
+def update_user(db: Session, user_id: int, user_update: UserUpdate):
     """Update user information"""
     db_user = get_user_by_id(db, user_id)
     if not db_user:
@@ -187,7 +208,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         role: str = payload.get("role")
         if user_id is None:
             raise credentials_exception
-        token_data = schemas.TokenData(user_id=user_id, role=role)
+        token_data = TokenData(user_id=user_id, role=role)
     except JWTError:
         raise credentials_exception
     
@@ -197,7 +218,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-def has_permission(user: models.User, permission: str) -> bool:
+def has_permission(user: User, permission: str) -> bool:
     """Check if user has specific permission"""
     user_permissions = ROLE_PERMISSIONS.get(user.role, [])
     return "*" in user_permissions or permission in user_permissions

@@ -3,16 +3,67 @@ Analytics routes with role-based access control
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func, distinct
 from typing import Optional
 from datetime import datetime, date, timedelta
 
 from database import get_db
-from models.attendance_model import AttendanceModel
-from models.notification_model import NotificationModel
-from modules.auth.dependencies import get_current_active_user, require_professor_or_admin
-from modules.auth.models import User
+from models.models import AttendanceModel, NotificationModel, User
+from modules.auth.dependencies import get_current_active_user, require_professor_or_admin, require_admin
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
+
+@router.get("/admin/system-overview")
+def get_system_overview(
+    current_user: User = Depends(require_professor_or_admin),
+    db: Session = Depends(get_db)
+):
+    """Get system-wide overview statistics - admin only"""
+    try:
+        # Count users by role
+        total_students = db.query(User).filter(User.role == "student").count()
+        total_professors = db.query(User).filter(User.role == "professor").count()
+        total_admins = db.query(User).filter(User.role == "admin").count()
+        
+        # Get attendance statistics
+        today = date.today()
+        seven_days_ago = today - timedelta(days=7)
+        
+        attendance_today = db.query(AttendanceModel).filter(
+            AttendanceModel.date == today
+        ).count()
+        
+        attendance_week = db.query(AttendanceModel).filter(
+            AttendanceModel.date >= seven_days_ago
+        ).count()
+        
+        # Get notification count
+        pending_notifications = db.query(NotificationModel).filter(
+            NotificationModel.created_at >= seven_days_ago
+        ).count()
+        
+        # Get unique departments (from user metadata or hardcoded)
+        # For now, we'll use a simple count based on common departments
+        total_departments = 4  # CS, EC, ME, CV - adjust based on your system
+        
+        return {
+            "system_statistics": {
+                "total_students": total_students,
+                "total_professors": total_professors,
+                "total_admins": total_admins,
+                "total_departments": total_departments,
+                "total_users": total_students + total_professors + total_admins
+            },
+            "recent_activity": {
+                "attendance_records_today": attendance_today,
+                "attendance_records_week": attendance_week,
+                "notifications_week": pending_notifications
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching system overview: {str(e)}")
 
 @router.post("/ai_summary")
 def generate_ai_summary(

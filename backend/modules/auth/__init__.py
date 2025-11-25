@@ -1,6 +1,6 @@
 """
 Authentication module
 """
-from . import models, schemas, services, routes, dependencies
+from . import services, routes, dependencies
 
-__all__ = ["models", "schemas", "services", "routes", "dependencies"]
+__all__ = ["services", "routes", "dependencies"]

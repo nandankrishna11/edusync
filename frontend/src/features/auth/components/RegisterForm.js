@@ -4,6 +4,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Input } from '../../../components/ui';
+import Button from '../../../components/ui/Button';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -57,27 +59,48 @@ const RegisterForm = () => {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 px-4">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="max-w-md w-full text-center animate-scale-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 p-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h2>
             <p className="text-gray-600 mb-6">Your account has been created. Redirecting to login...</p>
+            <div className="flex items-center justify-center">
+              <div className="w-6 h-6 border-3 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
+  const UserIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  );
+
+  const EmailIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+
+  const LockIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 px-4 py-12">
       <div className="max-w-md w-full">
         {/* Logo Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
+        <div className="text-center mb-8 animate-fade-in-up">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl mb-4 shadow-lg">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
@@ -87,165 +110,139 @@ const RegisterForm = () => {
         </div>
 
         {/* Registration Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-8 animate-scale-in">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <div className="flex">
-                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-red-50 border-l-4 border-red-500 rounded-xl p-4 animate-fade-in">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="ml-2 text-sm text-red-600">{error}</p>
+                  <p className="ml-3 text-sm text-red-700">{error}</p>
                 </div>
               </div>
             )}
 
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Account Type
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: 'student' })}
-                  className={`p-3 rounded-xl border-2 transition-all ${
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
                     formData.role === 'student'
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span className="font-medium">Student</span>
+                    <span className="font-semibold">Student</span>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: 'professor' })}
-                  className={`p-3 rounded-xl border-2 transition-all ${
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 ${
                     formData.role === 'professor'
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    <span className="font-medium">Professor</span>
+                    <span className="font-semibold">Professor</span>
                   </div>
                 </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                User ID
-              </label>
-              <input
-                type="text"
-                name="user_id"
-                value={formData.user_id}
-                onChange={(e) => setFormData({...formData, user_id: e.target.value.toUpperCase()})}
-                className="form-input"
-                placeholder={
-                  formData.role === 'student' ? 'Enter USN (e.g., 1MS21CS001)' :
-                  formData.role === 'professor' ? 'Enter Employee ID (e.g., EMP001)' :
-                  'Enter Admin ID (e.g., ADMIN001)'
-                }
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {formData.role === 'student' && 'Students use University Seat Number (USN)'}
-                {formData.role === 'professor' && 'Professors use Employee ID'}
-                {formData.role === 'admin' && 'Admins use Admin ID'}
-              </p>
-            </div>
+            <Input
+              label="User ID"
+              type="text"
+              name="user_id"
+              value={formData.user_id}
+              onChange={(e) => setFormData({...formData, user_id: e.target.value.toUpperCase()})}
+              placeholder={
+                formData.role === 'student' ? 'Enter USN (e.g., 1MS21CS001)' :
+                formData.role === 'professor' ? 'Enter Employee ID (e.g., EMP001)' :
+                'Enter Admin ID (e.g., ADMIN001)'
+              }
+              icon={UserIcon}
+              helper={
+                formData.role === 'student' ? 'Students use University Seat Number (USN)' :
+                formData.role === 'professor' ? 'Professors use Employee ID' :
+                'Admins use Admin ID'
+              }
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="full_name"
-                value={formData.full_name}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="Enter full name"
-                required
-              />
-            </div>
+            <Input
+              label="Full Name"
+              type="text"
+              name="full_name"
+              value={formData.full_name}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              icon={UserIcon}
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address (Optional)
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="Enter email address (optional)"
-              />
-            </div>
+            <Input
+              label="Email Address (Optional)"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter email address"
+              icon={EmailIcon}
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="Enter password"
-                required
-                minLength={6}
-              />
-            </div>
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter password (min 6 characters)"
+              icon={LockIcon}
+              helper="Password must be at least 6 characters"
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="Confirm password"
-                required
-                minLength={6}
-              />
-            </div>
+            <Input
+              label="Confirm Password"
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              icon={LockIcon}
+              required
+            />
 
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="btn btn-primary w-full py-3 text-base font-semibold"
+              variant="primary"
+              size="lg"
+              loading={loading}
+              className="w-full"
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="spinner mr-2"></div>
-                  Creating Account...
-                </div>
-              ) : (
-                'Create Account'
-              )}
-            </button>
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
                 Sign in
               </Link>
             </p>
@@ -255,7 +252,7 @@ const RegisterForm = () => {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
-            © 2024 Classroom Management System. All rights reserved.
+            © 2025 Classroom Management System. All rights reserved.
           </p>
         </div>
       </div>

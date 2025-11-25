@@ -8,11 +8,16 @@ import { authService } from '../services/authService';
 const UserManagement = () => {
   const { user, isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const [editData, setEditData] = useState({
     user_id: '',
@@ -32,13 +37,56 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError('');
       const data = await authService.getUsers();
       setUsers(data);
+      setFilteredUsers(data);
     } catch (error) {
       setError('Failed to fetch users');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Filter users based on search and filters
+  useEffect(() => {
+    let filtered = users;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(u => 
+        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.user_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.username?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply role filter
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(u => u.role === roleFilter);
+    }
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(u => 
+        statusFilter === 'active' ? u.is_active : !u.is_active
+      );
+    }
+
+    setFilteredUsers(filtered);
+  }, [searchTerm, roleFilter, statusFilter, users]);
+
+  // Get statistics
+  const getStats = () => {
+    return {
+      total: users.length,
+      students: users.filter(u => u.role === 'student').length,
+      professors: users.filter(u => u.role === 'professor').length,
+      admins: users.filter(u => u.role === 'admin').length,
+      active: users.filter(u => u.is_active).length,
+      inactive: users.filter(u => !u.is_active).length
+    };
   };
 
   const handleEdit = (userToEdit) => {
@@ -62,10 +110,13 @@ const UserManagement = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
+      setError('');
       await authService.updateUser(selectedUser.id, editData);
       await fetchUsers();
+      setSuccess('User updated successfully');
       setShowEditModal(false);
       setSelectedUser(null);
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       setError('Failed to update user');
     }
@@ -73,10 +124,13 @@ const UserManagement = () => {
 
   const handleDeleteConfirm = async () => {
     try {
+      setError('');
       await authService.deleteUser(selectedUser.id);
       await fetchUsers();
+      setSuccess('User deleted successfully');
       setShowDeleteModal(false);
       setSelectedUser(null);
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       setError('Failed to delete user');
     }
@@ -118,19 +172,122 @@ const UserManagement = () => {
     );
   }
 
+  const stats = getStats();
+
   return (
     <div className="max-w-7xl mx-auto p-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Students</p>
+              <p className="text-3xl font-bold text-green-600 mt-2">{stats.students}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Professors</p>
+              <p className="text-3xl font-bold text-purple-600 mt-2">{stats.professors}</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Users</p>
+              <p className="text-3xl font-bold text-indigo-600 mt-2">{stats.active}</p>
+            </div>
+            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
               <p className="text-gray-600">Manage system users and their roles</p>
             </div>
-            <div className="text-sm text-gray-500">
-              Total Users: {users.length}
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+              <svg className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
+
+            {/* Role Filter */}
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="all">All Roles</option>
+              <option value="student">Students</option>
+              <option value="professor">Professors</option>
+              <option value="admin">Admins</option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div className="mt-3 text-sm text-gray-600">
+            Showing {filteredUsers.length} of {users.length} users
           </div>
         </div>
 
@@ -141,6 +298,17 @@ const UserManagement = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="ml-2 text-sm text-red-600">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {success && (
+          <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex">
+              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="ml-2 text-sm text-green-600">{success}</p>
             </div>
           </div>
         )}
@@ -168,7 +336,20 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((userItem) => (
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center">
+                      <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-gray-500 font-medium">No users found</p>
+                      <p className="text-gray-400 text-sm mt-1">Try adjusting your search or filters</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((userItem) => (
                 <tr key={userItem.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -218,7 +399,8 @@ const UserManagement = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>

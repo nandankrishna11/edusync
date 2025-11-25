@@ -9,6 +9,8 @@ const Sidebar = () => {
   const location = useLocation();
   const { user, hasRole } = useAuth();
 
+  if (!user) return null;
+
   const getMenuItems = () => {
     const baseItems = [
       { 
@@ -38,20 +40,43 @@ const Sidebar = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )
-      },
-      { 
-        path: `/${user?.role}/notifications`, 
-        label: 'Notifications', 
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.868 19.504A8.966 8.966 0 003 12a9 9 0 0118 0 8.966 8.966 0 00-1.868 7.504" />
-          </svg>
-        )
       }
     ];
 
+    // Add marks for students
+    if (hasRole('student')) {
+      baseItems.push({
+        path: `/${user?.role}/marks`, 
+        label: 'My Marks', 
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        )
+      });
+    }
+
+    baseItems.push({ 
+      path: `/${user?.role}/notifications`, 
+      label: 'Notifications', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.868 19.504A8.966 8.966 0 003 12a9 9 0 0118 0 8.966 8.966 0 00-1.868 7.504" />
+        </svg>
+      )
+    });
+
     // Add role-specific items
     if (hasRole(['professor', 'admin'])) {
+      baseItems.push({
+        path: `/${user?.role}/marks`, 
+        label: 'Marks', 
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        )
+      });
       baseItems.push({
         path: `/${user?.role}/analytics`, 
         label: 'Analytics', 
