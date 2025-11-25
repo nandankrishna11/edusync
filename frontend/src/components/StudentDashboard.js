@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { StatCard, Card } from './ui/Card';
 import { Badge } from './ui/Badge';
+import WelcomeBanner from './WelcomeBanner';
+import QuickLinks from './QuickLinks';
+import VisionMissionCard from './VisionMissionCard';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -34,15 +37,8 @@ const StudentDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Section */}
-      <div className="mb-8 animate-fade-in-up">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.full_name || user?.username}! 👋
-        </h1>
-        <p className="text-gray-600 text-lg">
-          Track your classes and learning progress
-        </p>
-      </div>
+      {/* Welcome Banner */}
+      <WelcomeBanner />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -142,8 +138,12 @@ const StudentDashboard = () => {
         </div>
       </Card>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Left Column - Quick Actions */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card 
           className="cursor-pointer hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
           onClick={() => navigate('/student/marks')}
@@ -194,6 +194,14 @@ const StudentDashboard = () => {
             </div>
           </div>
         </Card>
+          </div>
+        </div>
+
+        {/* Right Column - Sidebar */}
+        <div className="space-y-6">
+          <QuickLinks />
+          <VisionMissionCard variant="compact" />
+        </div>
       </div>
 
       {/* Recent Activity */}

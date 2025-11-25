@@ -1,0 +1,83 @@
+<svg width="1920" height="600" viewBox="0 0 1920 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sky Background -->
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#60a5fa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="1920" height="600" fill="url(#skyGradient)"/>
+  
+  <!-- Ground -->
+  <rect y="400" width="1920" height="200" fill="#22c55e"/>
+  
+  <!-- Main Building -->
+  <rect x="600" y="150" width="720" height="250" fill="#dc2626" stroke="#991b1b" stroke-width="4"/>
+  
+  <!-- Building Windows (Grid) -->
+  <g fill="#fef3c7" stroke="#92400e" stroke-width="2">
+    <!-- Row 1 -->
+    <rect x="640" y="180" width="60" height="40"/>
+    <rect x="720" y="180" width="60" height="40"/>
+    <rect x="800" y="180" width="60" height="40"/>
+    <rect x="880" y="180" width="60" height="40"/>
+    <rect x="960" y="180" width="60" height="40"/>
+    <rect x="1040" y="180" width="60" height="40"/>
+    <rect x="1120" y="180" width="60" height="40"/>
+    <rect x="1200" y="180" width="60" height="40"/>
+    
+    <!-- Row 2 -->
+    <rect x="640" y="240" width="60" height="40"/>
+    <rect x="720" y="240" width="60" height="40"/>
+    <rect x="800" y="240" width="60" height="40"/>
+    <rect x="880" y="240" width="60" height="40"/>
+    <rect x="960" y="240" width="60" height="40"/>
+    <rect x="1040" y="240" width="60" height="40"/>
+    <rect x="1120" y="240" width="60" height="40"/>
+    <rect x="1200" y="240" width="60" height="40"/>
+    
+    <!-- Row 3 -->
+    <rect x="640" y="300" width="60" height="40"/>
+    <rect x="720" y="300" width="60" height="40"/>
+    <rect x="800" y="300" width="60" height="40"/>
+    <rect x="880" y="300" width="60" height="40"/>
+    <rect x="960" y="300" width="60" height="40"/>
+    <rect x="1040" y="300" width="60" height="40"/>
+    <rect x="1120" y="300" width="60" height="40"/>
+    <rect x="1200" y="300" width="60" height="40"/>
+  </g>
+  
+  <!-- Building Entrance -->
+  <rect x="880" y="320" width="160" height="80" fill="#78350f"/>
+  
+  <!-- Sign -->
+  <rect x="700" y="100" width="520" height="40" fill="white" stroke="#1e40af" stroke-width="3"/>
+  <text x="960" y="128" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1e40af" text-anchor="middle">KVG COLLEGE OF ENGINEERING</text>
+  
+  <!-- Trees -->
+  <g>
+    <!-- Left Trees -->
+    <rect x="300" y="350" width="30" height="50" fill="#78350f"/>
+    <circle cx="315" cy="340" r="40" fill="#22c55e"/>
+    
+    <rect x="450" y="360" width="25" height="40" fill="#78350f"/>
+    <circle cx="462" cy="350" r="35" fill="#16a34a"/>
+    
+    <!-- Right Trees -->
+    <rect x="1450" y="350" width="30" height="50" fill="#78350f"/>
+    <circle cx="1465" cy="340" r="40" fill="#22c55e"/>
+    
+    <rect x="1550" y="360" width="25" height="40" fill="#78350f"/>
+    <circle cx="1562" cy="350" r="35" fill="#16a34a"/>
+  </g>
+  
+  <!-- Clouds -->
+  <g fill="white" opacity="0.7">
+    <ellipse cx="300" cy="100" rx="60" ry="30"/>
+    <ellipse cx="340" cy="100" rx="50" ry="25"/>
+    
+    <ellipse cx="1500" cy="80" rx="70" ry="35"/>
+    <ellipse cx="1550" cy="80" rx="60" ry="30"/>
+  </g>
+</svg>

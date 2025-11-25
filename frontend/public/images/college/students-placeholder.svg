@@ -1,0 +1,84 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#dbeafe"/>
+  
+  <!-- Building in background -->
+  <rect x="200" y="100" width="800" height="300" fill="#dc2626" opacity="0.3"/>
+  
+  <!-- Ground -->
+  <ellipse cx="600" cy="700" rx="500" ry="100" fill="#22c55e" opacity="0.5"/>
+  
+  <!-- Students (simplified figures) -->
+  <g id="student1">
+    <!-- Student 1 - Left -->
+    <ellipse cx="300" cy="420" rx="30" ry="35" fill="#fbbf24"/>
+    <circle cx="300" cy="380" r="25" fill="#f59e0b"/>
+    <rect x="285" y="455" width="30" height="60" fill="#1e40af"/>
+    <rect x="285" y="515" width="12" height="50" fill="#1e3a8a"/>
+    <rect x="303" y="515" width="12" height="50" fill="#1e3a8a"/>
+    <!-- Book -->
+    <rect x="270" y="440" width="20" height="25" fill="#ef4444"/>
+  </g>
+  
+  <g id="student2">
+    <!-- Student 2 -->
+    <ellipse cx="400" cy="430" rx="32" ry="37" fill="#fbbf24"/>
+    <circle cx="400" cy="388" r="27" fill="#f59e0b"/>
+    <rect x="384" y="467" width="32" height="65" fill="#1e40af"/>
+    <rect x="384" y="532" width="13" height="53" fill="#1e3a8a"/>
+    <rect x="403" y="532" width="13" height="53" fill="#1e3a8a"/>
+    <!-- Book -->
+    <rect x="368" y="450" width="22" height="27" fill="#3b82f6"/>
+  </g>
+  
+  <g id="student3">
+    <!-- Student 3 - Center -->
+    <ellipse cx="500" cy="440" rx="35" ry="40" fill="#fbbf24"/>
+    <circle cx="500" cy="395" r="30" fill="#f59e0b"/>
+    <rect x="482" y="480" width="36" height="70" fill="#1e40af"/>
+    <rect x="482" y="550" width="15" height="58" fill="#1e3a8a"/>
+    <rect x="503" y="550" width="15" height="58" fill="#1e3a8a"/>
+    <!-- Book -->
+    <rect x="462" y="460" width="25" height="30" fill="#22c55e"/>
+  </g>
+  
+  <g id="student4">
+    <!-- Student 4 -->
+    <ellipse cx="600" cy="435" rx="33" ry="38" fill="#fbbf24"/>
+    <circle cx="600" cy="392" r="28" fill="#f59e0b"/>
+    <rect x="583" y="473" width="34" height="68" fill="#1e40af"/>
+    <rect x="583" y="541" width="14" height="55" fill="#1e3a8a"/>
+    <rect x="603" y="541" width="14" height="55" fill="#1e3a8a"/>
+    <!-- Book -->
+    <rect x="565" y="455" width="23" height="28" fill="#a855f7"/>
+  </g>
+  
+  <g id="student5">
+    <!-- Student 5 -->
+    <ellipse cx="700" cy="425" rx="31" ry="36" fill="#fbbf24"/>
+    <circle cx="700" cy="384" r="26" fill="#f59e0b"/>
+    <rect x="684" y="461" width="32" height="64" fill="#1e40af"/>
+    <rect x="684" y="525" width="13" height="52" fill="#1e3a8a"/>
+    <rect x="703" y="525" width="13" height="52" fill="#1e3a8a"/>
+    <!-- Book -->
+    <rect x="668" y="445" width="21" height="26" fill="#f97316"/>
+  </g>
+  
+  <g id="student6">
+    <!-- Student 6 - Right -->
+    <ellipse cx="800" cy="420" rx="30" ry="35" fill="#fbbf24"/>
+    <circle cx="800" cy="380" r="25" fill="#f59e0b"/>
+    <rect x="785" y="455" width="30" height="60" fill="#1e40af"/>
+    <rect x="785" y="515" width="12" height="50" fill="#1e3a8a"/>
+    <rect x="803" y="515" width="12" height="50" fill="#1e3a8a"/>
+    <!-- Book -->
+    <rect x="770" y="440" width="20" height="25" fill="#06b6d4"/>
+  </g>
+  
+  <!-- Sign/Banner -->
+  <rect x="250" y="50" width="700" height="60" fill="white" stroke="#1e40af" stroke-width="4" rx="10"/>
+  <text x="600" y="90" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#1e40af" text-anchor="middle">KVG COLLEGE OF ENGINEERING</text>
+  
+  <!-- Bottom Text -->
+  <text x="600" y="750" font-family="Arial, sans-serif" font-size="24" fill="#1e40af" text-anchor="middle" font-style="italic">"Technology for Mankind"</text>
+</svg>

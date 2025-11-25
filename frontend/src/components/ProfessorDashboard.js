@@ -4,6 +4,8 @@ import { useAuth } from '../features/auth/hooks/useAuth';
 import { StatCard, Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import Button from './ui/Button';
+import WelcomeBanner from './WelcomeBanner';
+import QuickLinks from './QuickLinks';
 
 const ProfessorDashboard = () => {
   const { user } = useAuth();
@@ -35,15 +37,8 @@ const ProfessorDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Section */}
-      <div className="mb-8 animate-fade-in-up">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.full_name || user?.username}! 👋
-        </h1>
-        <p className="text-gray-600 text-lg">
-          Manage your classes and student progress
-        </p>
-      </div>
+      {/* Welcome Banner */}
+      <WelcomeBanner />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

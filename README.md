@@ -1,6 +1,8 @@
-# 🎓 Classroom Management System with AI-Powered Textbook Assistant
+# 🎓 EDUSYNC - KVG College of Engineering Classroom Management System
 
 A comprehensive web-based classroom management system built with React and FastAPI, featuring attendance tracking, timetable management, marks management, notifications, and AI-powered textbook assistance with RAG (Retrieval-Augmented Generation).
+
+**Personalized for KVG College of Engineering Students**
 
 ## ✨ Features
 
@@ -449,6 +451,8 @@ For issues and questions:
 
 ---
 
-**Built with ❤️ for educational institutions**
+**Built with ❤️ for KVG College of Engineering**
+
+*EDUSYNC - Empowering Education Through Technology*
 
 *Last updated: November 2025*

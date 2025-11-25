@@ -66,17 +66,29 @@ const LoginForm = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 px-4">
-      <div className="max-w-md w-full">
+    <div 
+      className="min-h-screen flex items-center justify-center px-4 relative"
+      style={{
+        backgroundImage: 'linear-gradient(rgba(30, 64, 175, 0.85), rgba(49, 46, 129, 0.85)), url(/images/college/campus-placeholder.svg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="max-w-md w-full relative z-10">
         {/* Logo Section */}
         <div className="text-center mb-8 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl mb-4 shadow-lg">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
+          <div className="inline-flex items-center justify-center w-24 h-24 mb-4">
+            <img 
+              src="/images/college/logo.svg" 
+              alt="KVG College Logo" 
+              className="w-full h-full drop-shadow-2xl"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to your Classroom account</p>
+          <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">EDUSYNC</h1>
+          <p className="text-lg font-semibold text-white mb-1 drop-shadow-md">KVG College of Engineering</p>
+          <p className="text-sm font-medium text-yellow-300 italic mb-2 drop-shadow-md">"Technology for Mankind"</p>
+          <p className="text-blue-100 drop-shadow-md">Sign in to your account</p>
         </div>
 
         {/* Login Form */}
@@ -152,8 +164,8 @@ const LoginForm = () => {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            © 2025 Classroom Management System. All rights reserved.
+          <p className="text-xs text-white drop-shadow-md">
+            © 2025 EDUSYNC - KVG College of Engineering. All rights reserved.
           </p>
         </div>
       </div>

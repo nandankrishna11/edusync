@@ -21,6 +21,8 @@ import MarksEntryPage from '../features/marks/pages/MarksEntryPage';
 import MarksViewPage from '../features/marks/pages/MarksViewPage';
 import StudentPerformancePage from '../features/marks/pages/StudentPerformancePage';
 import StudentMarksPage from '../features/marks/pages/StudentMarksPage';
+import NotFoundPage from '../pages/NotFoundPage';
+import AboutPage from '../pages/AboutPage';
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -123,8 +125,14 @@ const RoleBasedRouter = () => {
       {/* Profile Routes */}
       <Route path="/profile" element={<UserProfile />} />
       
+      {/* About Page */}
+      <Route path="/about" element={<AboutPage />} />
+      
+      {/* 404 Page */}
+      <Route path="/404" element={<NotFoundPage />} />
+      
       {/* Catch all */}
-      <Route path="*" element={<Navigate to={getDashboardRoute()} replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

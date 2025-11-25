@@ -7,6 +7,8 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import { StatCard, Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { useApi } from '../../hooks/useApi';
+import WelcomeBanner from '../WelcomeBanner';
+import QuickLinks from '../QuickLinks';
 
 const AdminDashboard = () => {
   const { user, isAdmin } = useAuth();
